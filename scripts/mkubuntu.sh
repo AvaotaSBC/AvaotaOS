@@ -228,12 +228,12 @@ else
 echo "You are running this script on a ${ARCH} mechine, progress...."
 fi
 
-echo '127.0.0.1	avaota-board' >> ${ROOTFS}/etc/hosts
+echo '127.0.0.1	avaota-sbc' >> ${ROOTFS}/etc/hosts
 
 cat /dev/null > ${ROOTFS}/etc/hostname
-echo 'avaota-board' >> ${ROOTFS}/etc/hostname
+echo 'avaota-sbc' >> ${ROOTFS}/etc/hostname
 
-echo "user ALL=(ALL) NOPASSWD: ALL" >> ${ROOTFS}/etc/sudoers.d/010_user-nopassword
+echo "avaota ALL=(ALL) NOPASSWD: ALL" >> ${ROOTFS}/etc/sudoers.d/010_avaota-nopassword
 
 cat /dev/null > ${ROOTFS}/etc/fstab
 

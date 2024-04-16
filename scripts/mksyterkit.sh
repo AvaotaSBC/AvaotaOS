@@ -50,8 +50,12 @@ default_param
 parseargs "$@" || help $?
 
 source ../boot/SyterKit/SyterKit.conf
-rm ${workspace}/bootloader.bin
+if [ -f ${workspace}/bootloader.bin ];then rm ${workspace}/bootloader.bin; fi
+if [ -f ${workspace}/bl31.bin ];then rm ${workspace}/bl31.bin; fi
+if [ -f ${workspace}/scp.bin ];then rm ${workspace}/scp.bin; fi
 cd SyterKit && mkdir build-${BOARD} && cd build-${BOARD}
 cmake -DCMAKE_BOARD_FILE=${BOARD}.cmake -DCMAKE_BUILD_TYPE=Debug ..
 make -j$(nproc)
 cp board/${BOARD}/${SYTERKIT_TYPE}/${SYTERKIT_TYPE}_bin_card.bin ${workspace}/bootloader.bin
+cp ../board/${BOARD}/${SYTERKIT_TYPE}/bl31/bl31.bin ${workspace}/bl31.bin
+cp ../board/${BOARD}/${SYTERKIT_TYPE}/scp/scp.bin ${workspace}/scp.bin

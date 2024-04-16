@@ -1,6 +1,9 @@
 name: AvaotaOS-build
 on:
   workflow_dispatch:
+  
+permissions:
+  contents: write
 
 jobs:
   prepare_release:
@@ -20,7 +23,7 @@ jobs:
           tag_name: ${{ steps.time.outputs.time }}
           body_path: VERSION
           token: ${{ secrets.GITHUB_TOKEN }}
-          target_commitish: main
+          target_commitish: ubuntu
           draft: false
     outputs:
       release_id: ${{ steps.release.outputs.id }}

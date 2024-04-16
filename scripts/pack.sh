@@ -75,6 +75,7 @@ pack_boot()
 {
     cd ${workspace}
     if [ -f ${workspace}/boot.vfat ];then rm ${workspace}/boot.vfat; fi
+    
     bash ${workspace}/../tools/genimage.sh -c ${workspace}/../tools/genimage-boot.cfg
     mcopy -i boot.vfat -s ${workspace}/../boot/SyterKit/extlinux ::/
 }
@@ -130,3 +131,4 @@ compile_genimage
 pack_boot
 pack_rootfs
 pack_sdcard
+xz_image
