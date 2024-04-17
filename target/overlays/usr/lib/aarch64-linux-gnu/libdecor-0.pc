@@ -1,0 +1,10 @@
+prefix=/usr
+libdir=${prefix}/lib/aarch64-linux-gnu
+includedir=${prefix}/include
+
+Name: libdecor-0
+Description: library for Wayland client-side window decors
+Version: 0.1.0
+Requires.private: wayland-client
+Libs: -L${libdir} -ldecor-0
+Cflags: -I${includedir}/libdecor-0

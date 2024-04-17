@@ -50,12 +50,18 @@ default_param
 parseargs "$@" || help $?
 
 source ../boot/SyterKit/SyterKit.conf
+source ../boards/${BOARD}.conf
 if [ -f ${workspace}/bootloader.bin ];then rm ${workspace}/bootloader.bin; fi
 if [ -f ${workspace}/bl31.bin ];then rm ${workspace}/bl31.bin; fi
 if [ -f ${workspace}/scp.bin ];then rm ${workspace}/scp.bin; fi
+if [ -f ${workspace}/splash.bin ];then rm ${workspace}/splash.bin; fi
+if [ -f ${workspace}/exlinux.conf ];then rm ${workspace}/exlinux.conf; fi
 cd SyterKit && mkdir build-${BOARD} && cd build-${BOARD}
 cmake -DCMAKE_BOARD_FILE=${BOARD}.cmake -DCMAKE_BUILD_TYPE=Debug ..
 make -j$(nproc)
+cp ${workspace}/../boot/SyterKit/extlinux.conf ${workspace}
+sed -i "s|BOARD_NAME|${DEVICE_DTS}|g" ${workspace}/extlinux.conf
 cp board/${BOARD}/${SYTERKIT_TYPE}/${SYTERKIT_TYPE}_bin_card.bin ${workspace}/bootloader.bin
 cp ../board/${BOARD}/${SYTERKIT_TYPE}/bl31/bl31.bin ${workspace}/bl31.bin
 cp ../board/${BOARD}/${SYTERKIT_TYPE}/scp/scp.bin ${workspace}/scp.bin
+cp ../board/${BOARD}/${SYTERKIT_TYPE}/splash/splash.bin ${workspace}/splash.bin

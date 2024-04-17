@@ -87,22 +87,24 @@ HOST_ARCH=$(arch)
 default_param
 parseargs "$@" || help $?
 
-BASE_TOOLS="binutils file tree sudo bash-completion openssh-server network-manager dnsmasq-base libpam-systemd ppp wireless-regdb wpasupplicant libengine-pkcs11-openssl iptables systemd-timesyncd vim usbutils libgles2 parted exfatprogs systemd-sysv mesa-vulkan-drivers"
-XFCE_DESKTOP="xorg xfce4 desktop-base lightdm xfce4-terminal tango-icon-theme xfce4-notifyd xfce4-power-manager network-manager-gnome xfce4-goodies pulseaudio alsa-utils dbus-user-session rtkit pavucontrol thunar-volman eject gvfs gvfs-backends udisks2 dosfstools e2fsprogs libblockdev-crypto2 ntfs-3g polkitd blueman"
-GNOME_DESKTOP="gnome-core avahi-daemon desktop-base file-roller gnome-tweaks gstreamer1.0-libav gstreamer1.0-plugins-ugly libgsf-bin libproxy1-plugin-networkmanager network-manager-gnome"
-KDE_DESKTOP="kde-plasma-desktop"
-BENCHMARK_TOOLS="glmark2-es2 mesa-utils vulkan-tools iperf3 stress-ng"
+BASE_PKGS="sudo ssh net-tools ethtool wireless-tools network-manager iputils-ping rsyslog alsa-utils busybox kmod fdisk"
+BASE_TOOLS="binutils file tree sudo bash-completion openssh-server network-manager dnsmasq-base libpam-systemd ppp wireless-regdb wpasupplicant iptables systemd-timesyncd vim usbutils parted exfatprogs systemd-sysv net-tools ethtool"
+XFCE_DESKTOP="xubuntu-desktop"
+GNOME_DESKTOP="ubuntu-desktop"
+KDE_DESKTOP="kubuntu-desktop"
+LXQT_DESKTOP="lubuntu-desktop"
 FONTS="fonts-crosextra-caladea fonts-crosextra-carlito fonts-dejavu fonts-liberation fonts-liberation2 fonts-linuxlibertine fonts-noto-core fonts-noto-cjk fonts-noto-extra fonts-noto-mono fonts-noto-ui-core fonts-sil-gentium-basic"
-EXTRA_TOOLS="i2c-tools net-tools ethtool"
 
 if [ "${TYPE}" == "cli" ];then
-    INCLUDE_PACKAGES="${BASE_TOOLS} ${FONTS} ${EXTRA_TOOLS}"
+    INCLUDE_PACKAGES="${BASE_TOOLS} ${FONTS}"
 elif [ "${TYPE}" == "xfce" ];then
-    INCLUDE_PACKAGES="${BASE_TOOLS} ${XFCE_DESKTOP} ${BENCHMARK_TOOLS} ${FONTS} ${EXTRA_TOOLS}"
+    INCLUDE_PACKAGES="${BASE_TOOLS} ${XFCE_DESKTOP} ${FONTS}"
 elif [ "${TYPE}" == "gnome" ];then
-    INCLUDE_PACKAGES="${BASE_TOOLS} ${GNOME_DESKTOP} ${BENCHMARK_TOOLS} ${FONTS} ${EXTRA_TOOLS}"
+    INCLUDE_PACKAGES="${BASE_TOOLS} ${GNOME_DESKTOP} ${FONTS}"
 elif [ "${TYPE}" == "kde" ];then
-    INCLUDE_PACKAGES="${BASE_TOOLS} ${KDE_DESKTOP} ${BENCHMARK_TOOLS} ${FONTS} ${EXTRA_TOOLS}"
+    INCLUDE_PACKAGES="${BASE_TOOLS} ${KDE_DESKTOP} ${FONTS}"
+elif [ "${TYPE}" == "lxqt" ];then
+    INCLUDE_PACKAGES="${BASE_TOOLS} ${LXQT_DESKTOP} ${FONTS}"
 else
     echo "unsupported rootfs type."
     exit 2
@@ -140,51 +142,7 @@ fi
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} dpkg --configure -a
 
 if [ "${VERSION}" != "noble" ];then
-echo "
-# See http://help.ubuntu.com/community/UpgradeNotes for how to upgrade to
-# newer versions of the distribution.
-deb http://ports.ubuntu.com/ubuntu-ports/ jammy main restricted
-# deb-src http://ports.ubuntu.com/ubuntu-ports/ jammy main restricted
-
-## Major bug fix updates produced after the final release of the
-## distribution.
-deb http://ports.ubuntu.com/ubuntu-ports/ jammy-updates main restricted
-# deb-src http://ports.ubuntu.com/ubuntu-ports/ jammy-updates main restricted
-
-## N.B. software from this repository is ENTIRELY UNSUPPORTED by the Ubuntu
-## team. Also, please note that software in universe WILL NOT receive any
-## review or updates from the Ubuntu security team.
-deb http://ports.ubuntu.com/ubuntu-ports/ jammy universe
-# deb-src http://ports.ubuntu.com/ubuntu-ports/ jammy universe
-deb http://ports.ubuntu.com/ubuntu-ports/ jammy-updates universe
-# deb-src http://ports.ubuntu.com/ubuntu-ports/ jammy-updates universe
-
-## N.B. software from this repository is ENTIRELY UNSUPPORTED by the Ubuntu
-## team, and may not be under a free licence. Please satisfy yourself as to
-## your rights to use the software. Also, please note that software in
-## multiverse WILL NOT receive any review or updates from the Ubuntu
-## security team.
-deb http://ports.ubuntu.com/ubuntu-ports/ jammy multiverse
-# deb-src http://ports.ubuntu.com/ubuntu-ports/ jammy multiverse
-deb http://ports.ubuntu.com/ubuntu-ports/ jammy-updates multiverse
-# deb-src http://ports.ubuntu.com/ubuntu-ports/ jammy-updates multiverse
-
-## N.B. software from this repository may not have been tested as
-## extensively as that contained in the main release, although it includes
-## newer versions of some applications which may provide useful features.
-## Also, please note that software in backports WILL NOT receive any review
-## or updates from the Ubuntu security team.
-deb http://ports.ubuntu.com/ubuntu-ports/ jammy-backports main restricted universe multiverse
-# deb-src http://ports.ubuntu.com/ubuntu-ports/ jammy-backports main restricted universe multiverse
-
-deb http://ports.ubuntu.com/ubuntu-ports/ jammy-security main restricted
-# deb-src http://ports.ubuntu.com/ubuntu-ports/ jammy-security main restricted
-deb http://ports.ubuntu.com/ubuntu-ports/ jammy-security universe
-# deb-src http://ports.ubuntu.com/ubuntu-ports/ jammy-security universe
-deb http://ports.ubuntu.com/ubuntu-ports/ jammy-security multiverse
-# deb-src http://ports.ubuntu.com/ubuntu-ports/ jammy-security multiverse
-" > ${ROOTFS}/etc/apt/sources.list
-
+cat ../target/conf/sources.list > ${ROOTFS}/etc/apt/sources.list
 sed -i "s|jammy|${VERSION}|g" ${ROOTFS}/etc/apt/sources.list
 fi
 sed -i "s|http://ports.ubuntu.com/ubuntu-ports|${MIRROR}|g" ${ROOTFS}/etc/apt/sources.list
@@ -196,9 +154,17 @@ mount -t sysfs /sys ${ROOTFS}/sys
 trap 'UMOUNT_ALL' EXIT
 
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get update
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get install -y sudo ssh net-tools ethtool wireless-tools network-manager iputils-ping rsyslog alsa-utils busybox kmod --no-install-recommends
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get install -y ${BASE_PKGS} --no-install-recommends
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get install -y ifupdown
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get install -y ${INCLUDE_PACKAGES}
+
+mkdir ${ROOTFS}/kernel-deb && cp *.deb ${ROOTFS}/kernel-deb
+
+cat <<EOF | LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS}
+dpkg -i /kernel-deb/*.deb
+EOF
+
+rm -rf ${ROOTFS}/kernel-deb
 
 cat <<EOF | chroot ${ROOTFS} adduser avaota && addgroup avaota sudo
 avaota
@@ -220,7 +186,17 @@ LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get update
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get install libc6:armhf libstdc++6:armhf -y
 fi
 
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get update
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get upgrade -y
+
 chroot ${ROOTFS} apt clean
+
+cp ../target/services/init-resize/init-resize.sh ${ROOTFS}/usr/local/bin
+cp ../target/services/init-resize/init-resize.service ${ROOTFS}/etc/systemd/system/
+
+chmod +x ${ROOTFS}/usr/local/bin/init-resize.sh
+
+chroot ${ROOTFS} sudo systemctl enable init-resize.service
 
 if [ "$HOST_ARCH" != "$ARCH" ];then
 sudo rm ${ROOTFS}/usr/bin/qemu-${ARCH}-static

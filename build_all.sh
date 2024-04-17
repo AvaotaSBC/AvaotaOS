@@ -72,14 +72,17 @@ workspace=$(pwd)
 cd ${workspace}
 ROOTFS=${workspace}/rootfs
 
+source ../boards/${BOARD}.conf
+source ../kernel/${KERNEL_USE}.conf
+
 bash ../scripts/fetch.sh -b ${BOARD} -v ${VERSION} -a ${ARCH}
 bash ../scripts/mksyterkit.sh -b ${BOARD}
+bash ../scripts/mklinux.sh -c ${LINUX_CONFIG}
 if [ -f ${workspace}/ubuntu-${TYPE}/THIS-IS-NOT-YOUR-ROOT ];then
     echo "found rootfs, skip build rootfs."
 else
-    mkdir ${ROOTFS} && bash ../scripts/mkubuntu.sh -r ${ROOTFS} -v ${VERSION} -a ${ARCH} -t ${TYPE}
+    sudo mkdir ${ROOTFS} && sudo bash ../scripts/mkubuntu.sh -r ${ROOTFS} -v ${VERSION} -a ${ARCH} -t ${TYPE}
 fi
-bash ../scripts/mklinux.sh -b ${BOARD}
 bash ../scripts/pack.sh -t ${TYPE}
 
 mv sdcard.img.xz ubuntu-${VERSION}-${TYPE}-${ARCH}-${BOARD}.img.xz

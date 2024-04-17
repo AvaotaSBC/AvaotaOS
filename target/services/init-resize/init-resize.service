@@ -1,0 +1,8 @@
+[Unit]
+Description=Init Resize
+ 
+[Service]
+ExecStart=/usr/local/bin/init-resize.sh
+ 
+[Install]
+WantedBy=multi-user.target

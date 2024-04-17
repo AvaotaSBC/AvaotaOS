@@ -6,7 +6,7 @@ Build linux.
 The target Image & dtb will be generated in the build folder of the directory where the mklinux.sh script is located.
 
 Options: 
-  -b, --board BOARD                   The board name.
+  -c, --config CONFIG                 The linux configure file.
   -h, --help                          Show command help.
 "
 
@@ -32,8 +32,8 @@ parseargs()
             return 1
         elif [ "x$1" == "x" ]; then
             shift
-        elif [ "x$1" == "x-b" -o "x$1" == "x--board" ]; then
-            BOARD=`echo $2`
+        elif [ "x$1" == "x-c" -o "x$1" == "x--config" ]; then
+            LINUX_CONFIG=`echo $2`
             shift
             shift
         else
@@ -43,27 +43,12 @@ parseargs()
     done
 }
 
-compile_linux()
+compile_linux_pkg()
 {
     cd ${workspace}/linux
     make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- ${LINUX_CONFIG}
-    make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j$(nproc)
-
-    if [ -d ${workspace}/linux_install ];then
-        rm -rf ${workspace}/linux_install
-    fi
-    mkdir -p ${workspace}/linux_install/usr
-    make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- modules_install INSTALL_MOD_PATH=${workspace}/linux_install
-    make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- headers_install INSTALL_HDR_PATH=${workspace}/linux_install/usr
-}
-
-install_linux()
-{
-    if [ -d ${workspace}/${DEVICE_DTS}.dtb ];then rm -rf ${workspace}/${DEVICE_DTS}.dtb; fi
-    if [ -d ${workspace}/Image ];then rm -rf ${workspace}/Image; fi
-
-    cp ${workspace}/linux/arch/arm64/boot/dts/allwinner/${DEVICE_DTS}.dtb ${workspace}/sunxi.dtb
-    cp ${workspace}/linux/arch/arm64/boot/Image ${workspace}
+    make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- deb-pkg -j$(nproc)
+    rm ../*dbg*.deb
 }
 
 workspace=$(pwd)
@@ -72,8 +57,4 @@ cd ${workspace}
 default_param
 parseargs "$@" || help $?
 
-source ../boards/${BOARD}.conf
-source ../kernel/${KERNEL_USE}.conf
-
-compile_linux
-install_linux
+compile_linux_pkg

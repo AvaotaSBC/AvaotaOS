@@ -51,8 +51,18 @@ UMOUNT_ALL(){
         fi
     fi
     
+    if [ -d ${workspace}/boot_dir ]; then
+        if grep -q "${workspace}/boot_dir " /proc/mounts ; then
+            umount ${workspace}/boot_dir
+        fi
+    fi
+    
     if [ -d ${workspace}/rootfs_dir ]; then
         rm -rf ${workspace}/rootfs_dir
+    fi
+    
+    if [ -d ${workspace}/boot_dir ]; then
+        rm -rf ${workspace}/boot_dir
     fi
     
     set -e
@@ -75,23 +85,37 @@ pack_boot()
 {
     cd ${workspace}
     if [ -f ${workspace}/boot.vfat ];then rm ${workspace}/boot.vfat; fi
+    if [ -d ${workspace}/boot_dir ];then rm -rf ${workspace}/boot_dir; fi
     
-    bash ${workspace}/../tools/genimage.sh -c ${workspace}/../tools/genimage-boot.cfg
-    mcopy -i boot.vfat -s ${workspace}/../boot/SyterKit/extlinux ::/
+    dd if=/dev/zero of=${workspace}/boot.vfat bs=1MiB count=128 status=progress && sync
+    mkfs.vfat -n boot -F 32 ${workspace}/boot.vfat
+    
+    trap 'UMOUNT_ALL' EXIT
+    
+    mkdir ${workspace}/boot_dir
+    mount ${workspace}/boot.vfat ${workspace}/boot_dir
+    
+    mv ${workspace}/ubuntu-${TYPE}/boot/* ${workspace}/boot_dir
+    mkdir ${workspace}/boot_dir/extlinux
+    cp ${workspace}/extlinux.conf ${workspace}/boot_dir/extlinux
+    
+    cp ${workspace}/bl31.bin ${workspace}/boot_dir
+    cp ${workspace}/scp.bin ${workspace}/boot_dir
+    cp ${workspace}/splash.bin ${workspace}/boot_dir
+    cp ${workspace}/../boot/SyterKit/uInitrd ${workspace}/boot_dir
+    
+    UMOUNT_ALL
 }
 
 pack_rootfs()
 {
     cd ${workspace}
     if [ -f ${workspace}/rootfs.ext4 ];then rm ${workspace}/rootfs.ext4; fi
-    if [ -d ${workspace}/rootfs_pack ];then rm -rf ${workspace}/rootfs_pack; fi
-    cp -rfp ubuntu-${TYPE} rootfs_pack
-    cp -rfp ${workspace}/linux_install/lib/* ${workspace}/rootfs_pack/lib
-    cp -rfp ${workspace}/linux_install/usr/* ${workspace}/rootfs_pack/usr
-    cp -rfp ${workspace}/../firmware ${workspace}/rootfs_pack/lib/
+    if [ -d ${workspace}/rootfs_dir ];then rm -rf ${workspace}/rootfs_dir; fi
     
-    size=`du -sh --block-size=1MiB ${workspace}/rootfs_pack | cut -f 1 | xargs`
-    size=$(($size+500))
+    rootfs_size=`du -sh --block-size=1MiB ${workspace}/ubuntu-${TYPE} | cut -f 1 | xargs`
+
+    size=$(($rootfs_size+880))
     dd if=/dev/zero of=${workspace}/rootfs.ext4 bs=1MiB count=$size status=progress && sync
     
     mkfs.ext4 -L rootfs ${workspace}/rootfs.ext4
@@ -100,8 +124,13 @@ pack_rootfs()
     
     mkdir ${workspace}/rootfs_dir
     mount ${workspace}/rootfs.ext4 ${workspace}/rootfs_dir
-    rsync -avHAXq ${workspace}/rootfs_pack/* ${workspace}/rootfs_dir
+    rsync -avHAXq ${workspace}/ubuntu-${TYPE}/* ${workspace}/rootfs_dir
     
+    rm ${workspace}/rootfs_dir/THIS-IS-NOT-YOUR-ROOT
+    
+    cp -rfp ${workspace}/../firmware ${workspace}/rootfs_dir/lib/
+    
+    sync
     sync
     sleep 10
     
