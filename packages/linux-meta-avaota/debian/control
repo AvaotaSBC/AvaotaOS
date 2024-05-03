@@ -1,0 +1,48 @@
+Source: linux-meta-avaota
+Section: devel
+Priority: optional
+Maintainer: Ubuntu Kernel Team <kernel-team@lists.ubuntu.com>
+Standards-Version: 4.0.0
+Build-Depends: dpkg (>= 1.13.19), debhelper (>= 10), gawk
+Build-Depends-Arch:
+ linux-avaota-headers-6.8.0-1004,
+ linux-headers-6.8.0-1004-avaota,
+Vcs-Git: git://git.launchpad.net/~ubuntu-kernel/ubuntu/+source/linux-meta-avaota/+git/jammy
+
+Package: linux-headers-avaota
+Architecture: arm64
+Section: kernel
+Depends: ${misc:Depends}, linux-headers-${kernel-abi-version}-avaota
+Description: Avaota Linux kernel headers
+ This package will always depend on the latest Avaota Linux
+ kernel headers available.
+
+Package: linux-image-avaota
+Architecture: arm64
+Section: kernel
+Provides: ${dkms:zfs-modules} ${dkms:wireguard-linux-compat-modules}
+Depends: ${misc:Depends}, linux-image-${kernel-abi-version}-avaota, linux-firmware
+Description: Avaota Linux kernel image
+ This package will always depend on the latest Avaota Linux
+ kernel image available.
+
+Package: linux-tools-avaota
+Architecture: arm64
+Section: kernel
+Provides: linux-tools
+Depends: ${misc:Depends}, linux-tools-${kernel-abi-version}-avaota
+Description: Avaota Linux kernel tools
+ This package will always depend on the latest Avaota Linux
+ kernel tools available.
+
+Package: linux-avaota
+Architecture: arm64
+Section: kernel
+Provides: kernel-testing--linux-avaota--full--avaota, kernel-testing--linux-avaota--full--preferred,
+Depends: ${misc:Depends}, linux-image-avaota (= ${binary:Version}), linux-headers-avaota (= ${binary:Version})
+Recommends: linux-tools-${kernel-abi-version}-avaota, ubuntu-kernel-accessories
+Description: Complete Avaota Linux kernel and headers
+ This package will always depend on the latest complete Avaota Linux
+ kernel and headers available.
+
+

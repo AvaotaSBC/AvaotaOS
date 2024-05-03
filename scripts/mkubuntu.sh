@@ -26,7 +26,8 @@ default_param() {
     ROOTFS=rootfs
     VERSION=jammy
     TYPE=cli
-    MIRROR=http://mirrors.ustc.edu.cn/ubuntu-ports
+    #MIRROR=http://mirrors.ustc.edu.cn/ubuntu-ports
+    MIRROR=http://ports.ubuntu.com
 }
 
 parseargs()
@@ -82,56 +83,61 @@ UMOUNT_ALL(){
     set -e
 }
 
+INSTALL_PACKAGES(){
+    for item in $(cat $1)
+    do
+        LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get install -y ${item}
+        if [ $? == 0 ]; then
+            echo "install $item."
+        else
+            echo "can not install $item."
+        fi
+    done
+}
+
 HOST_ARCH=$(arch)
 
 default_param
 parseargs "$@" || help $?
-
-BASE_PKGS="sudo ssh net-tools ethtool wireless-tools network-manager iputils-ping rsyslog alsa-utils busybox kmod fdisk"
-BASE_TOOLS="binutils file tree sudo bash-completion openssh-server network-manager dnsmasq-base libpam-systemd ppp wireless-regdb wpasupplicant iptables systemd-timesyncd vim usbutils parted exfatprogs systemd-sysv net-tools ethtool"
-XFCE_DESKTOP="xubuntu-desktop"
-GNOME_DESKTOP="ubuntu-desktop"
-KDE_DESKTOP="kubuntu-desktop"
-LXQT_DESKTOP="lubuntu-desktop"
-FONTS="fonts-crosextra-caladea fonts-crosextra-carlito fonts-dejavu fonts-liberation fonts-liberation2 fonts-linuxlibertine fonts-noto-core fonts-noto-cjk fonts-noto-extra fonts-noto-mono fonts-noto-ui-core fonts-sil-gentium-basic"
-
-if [ "${TYPE}" == "cli" ];then
-    INCLUDE_PACKAGES="${BASE_TOOLS} ${FONTS}"
-elif [ "${TYPE}" == "xfce" ];then
-    INCLUDE_PACKAGES="${BASE_TOOLS} ${XFCE_DESKTOP} ${FONTS}"
-elif [ "${TYPE}" == "gnome" ];then
-    INCLUDE_PACKAGES="${BASE_TOOLS} ${GNOME_DESKTOP} ${FONTS}"
-elif [ "${TYPE}" == "kde" ];then
-    INCLUDE_PACKAGES="${BASE_TOOLS} ${KDE_DESKTOP} ${FONTS}"
-elif [ "${TYPE}" == "lxqt" ];then
-    INCLUDE_PACKAGES="${BASE_TOOLS} ${LXQT_DESKTOP} ${FONTS}"
-else
-    echo "unsupported rootfs type."
-    exit 2
-fi
-
 
 echo You are running this scipt on a ${HOST_ARCH} mechine....
 
 if [ -d ${ROOTFS} ];then rm -rf ${ROOTFS}; fi
 mkdir ${ROOTFS}
 
-if [ -f ubuntu-${TYPE}.tar.gz ];then rm ubuntu-${TYPE}.tar.gz; fi
+CDIMAGE_ADDR="https://cdimage.ubuntu.com"
+#CDIMAGE_ADDR="https://mirrors.ustc.edu.cn/ubuntu-cdimage"
+JAMMY_ARM64_ROOTFS="${CDIMAGE_ADDR}/ubuntu-base/releases/22.04/release/ubuntu-base-22.04-base-arm64.tar.gz"
+JAMMY_ARM32_ROOTFS="${CDIMAGE_ADDR}/ubuntu-base/releases/22.04/release/ubuntu-base-22.04-base-armhf.tar.gz"
+NOBLE_ARM64_ROOTFS="${CDIMAGE_ADDR}/ubuntu-base/releases/24.04/release/ubuntu-base-24.04-base-arm64.tar.gz"
+NOBLE_ARM32_ROOTFS="${CDIMAGE_ADDR}/ubuntu-base/releases/24.04/release/ubuntu-base-24.04-base-armhf.tar.gz"
 
 if [ "${ARCH}" == "aarch64" ];then
-sudo mmdebstrap --architectures=arm64 \
-    --include="ca-certificates locales dosfstools sudo bash-completion network-manager openssh-server systemd-timesyncd apt" \
-    ${VERSION} "${ROOTFS}" \
-    ${MIRROR}
+    if [ "${VERSION}" == "jammy" ];then
+        wget ${JAMMY_ARM64_ROOTFS} -O rootfs.tar.gz
+    elif [ "${VERSION}" == "noble" ];then
+        wget ${JAMMY_ARM32_ROOTFS} -O rootfs.tar.gz
+    else
+    echo "unsupported version."
+    exit 2
+    fi
+
 elif [ "${ARCH}" == "armhf" ];then
-sudo mmdebstrap --architectures=armhf \
-    --include="ca-certificates locales dosfstools sudo bash-completion network-manager openssh-server systemd-timesyncd apt" \
-    ${VERSION} "${ROOTFS}" \
-    ${MIRROR}
+    if [ "${VERSION}" == "jammy" ];then
+        wget ${NOBLE_ARM64_ROOTFS} -O rootfs.tar.gz
+    elif [ "${VERSION}" == "noble" ];then
+        wget ${NOBLE_ARM32_ROOTFS} -O rootfs.tar.gz
+    else
+    echo "unsupported version."
+    exit 2
+    fi
 else
 echo "unsupported arch."
 exit 2
 fi
+
+tar -zxvf rootfs.tar.gz -C ${ROOTFS}
+rm rootfs.tar.gz
 
 if [ "${HOST_ARCH}" != "${ARCH}" ];then
 sudo cp /usr/bin/qemu-${ARCH}-static ${ROOTFS}/usr/bin
@@ -141,22 +147,48 @@ fi
 
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} dpkg --configure -a
 
-if [ "${VERSION}" != "noble" ];then
-cat ../target/conf/sources.list > ${ROOTFS}/etc/apt/sources.list
-sed -i "s|jammy|${VERSION}|g" ${ROOTFS}/etc/apt/sources.list
-fi
+if [ "${VERSION}" == "jammy" ];then
 sed -i "s|http://ports.ubuntu.com/ubuntu-ports|${MIRROR}|g" ${ROOTFS}/etc/apt/sources.list
+elif [ "${VERSION}" == "noble" ];then
+sed -i "s|http://ports.ubuntu.com/ubuntu-ports|${MIRROR}|g" ${ROOTFS}/etc/apt/sources.list.d/ubuntu.source
+fi
+
 
 mount --bind /dev ${ROOTFS}/dev
 mount -t proc /proc ${ROOTFS}/proc
 mount -t sysfs /sys ${ROOTFS}/sys
 
+cp -b /etc/resolv.conf ${ROOTFS}/etc/resolv.conf
+
 trap 'UMOUNT_ALL' EXIT
 
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get update
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get install -y ${BASE_PKGS} --no-install-recommends
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get install -y ifupdown
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get install -y ${INCLUDE_PACKAGES}
+if [ "${VERSION}" == "jammy" ];then
+    LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get install -y ifupdown
+fi
+INSTALL_PACKAGES ../os/${VERSION}.conf
+
+XFCE_DESKTOP="xubuntu-desktop"
+GNOME_DESKTOP="ubuntu-desktop"
+KDE_DESKTOP="kubuntu-desktop"
+LXQT_DESKTOP="lubuntu-desktop"
+
+if [ "${TYPE}" != "cli" ];then
+    echo "Build desktop image."
+    if [ "${TYPE}" == "xfce" ];then
+        INCLUDE_PACKAGES="${XFCE_DESKTOP}"
+    elif [ "${TYPE}" == "gnome" ];then
+        INCLUDE_PACKAGES="${GNOME_DESKTOP}"
+    elif [ "${TYPE}" == "kde" ];then
+        INCLUDE_PACKAGES="${KDE_DESKTOP}"
+    elif [ "${TYPE}" == "lxqt" ];then
+        INCLUDE_PACKAGES="${LXQT_DESKTOP}"
+    else
+        echo "unsupported desktop type."
+        exit 2
+    fi
+    LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get install -y ${INCLUDE_PACKAGES}
+fi
 
 mkdir ${ROOTFS}/kernel-deb && cp *.deb ${ROOTFS}/kernel-deb
 
