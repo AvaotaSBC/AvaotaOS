@@ -116,7 +116,7 @@ if [ "${ARCH}" == "aarch64" ];then
     if [ "${VERSION}" == "jammy" ];then
         wget ${JAMMY_ARM64_ROOTFS} -O rootfs.tar.gz
     elif [ "${VERSION}" == "noble" ];then
-        wget ${JAMMY_ARM32_ROOTFS} -O rootfs.tar.gz
+        wget ${NOBLE_ARM64_ROOTFS} -O rootfs.tar.gz
     else
     echo "unsupported version."
     exit 2
@@ -124,7 +124,7 @@ if [ "${ARCH}" == "aarch64" ];then
 
 elif [ "${ARCH}" == "armhf" ];then
     if [ "${VERSION}" == "jammy" ];then
-        wget ${NOBLE_ARM64_ROOTFS} -O rootfs.tar.gz
+        wget ${JAMMY_ARM32_ROOTFS} -O rootfs.tar.gz
     elif [ "${VERSION}" == "noble" ];then
         wget ${NOBLE_ARM32_ROOTFS} -O rootfs.tar.gz
     else
