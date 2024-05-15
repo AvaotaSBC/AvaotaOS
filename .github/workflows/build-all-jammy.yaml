@@ -1,4 +1,4 @@
-name: AvaotaOS-build-all-noble
+name: AvaotaOS-build-all-jammy
 on:
   workflow_dispatch:
   
