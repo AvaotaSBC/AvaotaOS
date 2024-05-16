@@ -78,7 +78,13 @@ source ../kernel/${KERNEL_USE}.conf
 
 bash ../scripts/fetch.sh -b ${BOARD} -v ${VERSION} -a ${ARCH}
 bash ../scripts/mksyterkit.sh -b ${BOARD}
-bash ../scripts/mklinux.sh -c ${LINUX_CONFIG}
+
+if [ -d ${workspace}/${LINUX_CONFIG}-kernel-pkgs ];then
+    echo "found kernel packages, skip build kernel."
+else
+    bash ../scripts/mklinux.sh -c ${LINUX_CONFIG}
+fi
+
 if [ -f ${workspace}/ubuntu-${TYPE}/THIS-IS-NOT-YOUR-ROOT ];then
     echo "found rootfs, skip build rootfs."
 else

@@ -190,7 +190,7 @@ if [ "${TYPE}" != "cli" ];then
     LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get install -y ${INCLUDE_PACKAGES}
 fi
 
-mkdir ${ROOTFS}/kernel-deb && cp *.deb ${ROOTFS}/kernel-deb
+cp -r ${LINUX_CONFIG}-kernel-pkgs ${ROOTFS}/kernel-deb
 
 cat <<EOF | LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS}
 dpkg -i /kernel-deb/*.deb

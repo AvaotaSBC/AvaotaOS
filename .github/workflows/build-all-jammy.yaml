@@ -68,9 +68,13 @@ jobs:
         shell: bash
         run: |
           sudo bash build_all.sh -b avaota-a1 -v jammy -a aarch64 -t cli
+          sudo rm -rf build_dir/ubuntu-cli
           sudo bash build_all.sh -b avaota-a1 -v jammy -a aarch64 -t gnome
+          sudo rm -rf build_dir/ubuntu-gnome
           sudo bash build_all.sh -b avaota-a1 -v jammy -a aarch64 -t xfce
+          sudo rm -rf build_dir/ubuntu-xfce
           sudo bash build_all.sh -b avaota-a1 -v jammy -a aarch64 -t kde
+          sudo rm -rf build_dir/ubuntu-kde
           sudo bash build_all.sh -b avaota-a1 -v jammy -a aarch64 -t lxqt
       - name: Upload
         if: needs.prepare_release.outputs.release_id != ''

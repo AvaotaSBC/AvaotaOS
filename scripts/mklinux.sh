@@ -57,4 +57,8 @@ cd ${workspace}
 default_param
 parseargs "$@" || help $?
 
+set -e
 compile_linux_pkg
+
+mkdir ${workspace}/${LINUX_CONFIG}-kernel-pkgs
+cp ${workspace}/*.deb ${LINUX_CONFIG}-kernel-pkgs
