@@ -100,7 +100,6 @@ default_param
 parseargs "$@" || help $?
 
 source ../boards/${BOARD}.conf
-source ../kernel/${KERNEL_USE}.conf
 source ../boot/SyterKit/SyterKit.conf
 
 clone_syterkit

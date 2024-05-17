@@ -74,7 +74,6 @@ cd ${workspace}
 ROOTFS=${workspace}/rootfs
 
 source ../boards/${BOARD}.conf
-source ../kernel/${KERNEL_USE}.conf
 
 bash ../scripts/fetch.sh -b ${BOARD} -v ${VERSION} -a ${ARCH}
 bash ../scripts/mksyterkit.sh -b ${BOARD}
