@@ -89,6 +89,6 @@ if [ -f ${workspace}/ubuntu-${VERSION}-${TYPE}/THIS-IS-NOT-YOUR-ROOT ];then
 else
     sudo mkdir ${ROOTFS} && sudo bash ../scripts/mkubuntu.sh -r ${ROOTFS} -v ${VERSION} -a ${ARCH} -t ${TYPE}
 fi
-bash ../scripts/pack.sh -t ${TYPE}
+bash ../scripts/pack.sh -t ${TYPE} -v ${VERSION}
 
 mv sdcard.img.xz ubuntu-${VERSION}-${TYPE}-${ARCH}-${BOARD}.img.xz

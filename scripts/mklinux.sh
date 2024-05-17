@@ -48,7 +48,8 @@ compile_linux_pkg()
     cd ${workspace}/linux
     make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- ${LINUX_CONFIG}
     make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- deb-pkg -j$(nproc)
-    rm ../*dbg*.deb
+    cd ${workspace}
+    rm ${workspace}/*dbg*.deb
 }
 
 workspace=$(pwd)
@@ -61,4 +62,4 @@ set -e
 compile_linux_pkg
 
 mkdir ${workspace}/${LINUX_CONFIG}-kernel-pkgs
-cp ${workspace}/*.deb ${LINUX_CONFIG}-kernel-pkgs
+cp ${workspace}/*.deb ${workspace}/${LINUX_CONFIG}-kernel-pkgs

@@ -18,6 +18,7 @@ help()
 
 default_param() {
     TYPE=cli
+    VERSION=jammy
 }
 
 parseargs()
@@ -34,6 +35,10 @@ parseargs()
             shift
         elif [ "x$1" == "x-t" -o "x$1" == "x--type" ]; then
             TYPE=`echo $2`
+            shift
+            shift
+        elif [ "x$1" == "x-v" -o "x$1" == "x--version" ]; then
+            VERSION=`echo $2`
             shift
             shift
         else
