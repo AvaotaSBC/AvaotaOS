@@ -95,7 +95,7 @@ pack_boot()
     mkdir ${workspace}/boot_dir
     mount ${workspace}/boot.vfat ${workspace}/boot_dir
     
-    mv ${workspace}/ubuntu-${TYPE}/boot/* ${workspace}/boot_dir
+    mv ${workspace}/ubuntu-${VERSION}-${TYPE}/boot/* ${workspace}/boot_dir
     mkdir ${workspace}/boot_dir/extlinux
     cp ${workspace}/extlinux.conf ${workspace}/boot_dir/extlinux
     
@@ -113,7 +113,7 @@ pack_rootfs()
     if [ -f ${workspace}/rootfs.ext4 ];then rm ${workspace}/rootfs.ext4; fi
     if [ -d ${workspace}/rootfs_dir ];then rm -rf ${workspace}/rootfs_dir; fi
     
-    rootfs_size=`du -sh --block-size=1MiB ${workspace}/ubuntu-${TYPE} | cut -f 1 | xargs`
+    rootfs_size=`du -sh --block-size=1MiB ${workspace}/ubuntu-${VERSION}-${TYPE} | cut -f 1 | xargs`
 
     size=$(($rootfs_size+880))
     dd if=/dev/zero of=${workspace}/rootfs.ext4 bs=1MiB count=$size status=progress && sync
@@ -124,7 +124,7 @@ pack_rootfs()
     
     mkdir ${workspace}/rootfs_dir
     mount ${workspace}/rootfs.ext4 ${workspace}/rootfs_dir
-    rsync -avHAXq ${workspace}/ubuntu-${TYPE}/* ${workspace}/rootfs_dir
+    rsync -avHAXq ${workspace}/ubuntu-${VERSION}-${TYPE}/* ${workspace}/rootfs_dir
     
     rm ${workspace}/rootfs_dir/THIS-IS-NOT-YOUR-ROOT
     

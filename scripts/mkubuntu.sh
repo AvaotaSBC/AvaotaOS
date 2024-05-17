@@ -252,5 +252,5 @@ EOF
 
 UMOUNT_ALL
 
-mv ${ROOTFS} ubuntu-${TYPE}
-touch ubuntu-${TYPE}/THIS-IS-NOT-YOUR-ROOT
+mv ${ROOTFS} ubuntu-${VERSION}-${TYPE}
+touch ubuntu-${VERSION}-${TYPE}/THIS-IS-NOT-YOUR-ROOT

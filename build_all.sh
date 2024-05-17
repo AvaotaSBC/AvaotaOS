@@ -84,7 +84,7 @@ else
     bash ../scripts/mklinux.sh -c ${LINUX_CONFIG}
 fi
 
-if [ -f ${workspace}/ubuntu-${TYPE}/THIS-IS-NOT-YOUR-ROOT ];then
+if [ -f ${workspace}/ubuntu-${VERSION}-${TYPE}/THIS-IS-NOT-YOUR-ROOT ];then
     echo "found rootfs, skip build rootfs."
 else
     sudo mkdir ${ROOTFS} && sudo bash ../scripts/mkubuntu.sh -r ${ROOTFS} -v ${VERSION} -a ${ARCH} -t ${TYPE}
