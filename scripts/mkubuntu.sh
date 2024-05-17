@@ -62,6 +62,10 @@ parseargs()
             TYPE=`echo $2`
             shift
             shift
+        elif [ "x$1" == "x-c" -o "x$1" == "x--config" ]; then
+            LINUX_CONFIG=`echo $2`
+            shift
+            shift
         else
             echo `date` - ERROR, UNKNOWN params "$@"
             return 2
@@ -163,9 +167,13 @@ cp -b /etc/resolv.conf ${ROOTFS}/etc/resolv.conf
 trap 'UMOUNT_ALL' EXIT
 
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get update
-if [ "${VERSION}" == "jammy" ];then
-    LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get install -y ifupdown
-fi
+
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} netplan set ethernets.eth0.dhcp4=true
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} netplan set ethernets.eth0.dhcp6=true
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} netplan set ethernets.eth1.dhcp4=true
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} netplan set ethernets.eth1.dhcp6=true
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} sudo chmod 600 /etc/netplan/*.yaml
+
 INSTALL_PACKAGES ../os/${VERSION}.conf
 
 XFCE_DESKTOP="xubuntu-desktop"
