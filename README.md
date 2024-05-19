@@ -5,6 +5,9 @@
 ```
 username: avaota
 password: avaota
+
+username: root
+password: avaota
 ```
 
 ## Download
