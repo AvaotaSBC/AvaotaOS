@@ -152,7 +152,13 @@ pack_sdcard()
 xz_image()
 {
     cd ${workspace}
-    pixz sdcard.img
+    if [ -f sdcard.img ];then
+        pixz sdcard.img
+        echo "xz success."
+    else
+        echo "sdcard.img not found, xz sdcard image failed!"
+        exit 2
+    fi
 }
 
 workspace=$(pwd)

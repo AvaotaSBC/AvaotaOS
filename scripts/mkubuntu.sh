@@ -220,6 +220,14 @@ EOF
 # username：avaota
 # password：avaota
 
+cat <<EOF | chroot ${ROOTFS} passwd root
+avaota
+avaota
+EOF
+
+# username：root
+# password：avaota
+
 if [ "${ARCH}" == "aarch64" ];then
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} dpkg --add-architecture armhf
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get update
