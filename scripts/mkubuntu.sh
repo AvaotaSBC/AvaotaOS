@@ -228,6 +228,10 @@ EOF
 # username：root
 # password：avaota
 
+sed -i "s|#PermitRootLogin prohibit-password|PermitRootLogin yes|g" ${ROOTFS}/etc/ssh/sshd_config
+
+# Allow root ssh login
+
 if [ "${ARCH}" == "aarch64" ];then
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} dpkg --add-architecture armhf
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get update
