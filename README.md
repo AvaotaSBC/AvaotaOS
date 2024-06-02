@@ -21,7 +21,7 @@ ubuntu-UBUNTU_VERSION-SYS_TYPE-ARCH-BOARD.img.xz
 ```
 git clone --depth=1 https://github.com/AvaotaSBC/AvaotaOS && cd AvaotaOS
 
-sudo bash build_all.sh -b <BOARD> -v <UBUNTU_VERSION> -a <ARCH> -t <SYS_TYPE>
+sudo bash build_all.sh -b <BOARD> -v <UBUNTU_VERSION> -a <ARCH> -t <SYS_TYPE> -u <SYS_USER> -p <USER_PASSWORD> -s <ROOT_PASSWORD>
 ```
 
 BOARD: avaota-a1
@@ -41,7 +41,19 @@ SYS_TYPE:
 4.  kde
 5.  lxqt
 
-example: `bash build_all.sh -b avaota-a1 -v jammy -a aarch64 -t cli`
+SYS_USER:
+
+default: avaota
+
+USER_PASSWORD:
+
+default: avaota
+
+ROOT_PASSWORD:
+
+default: avaota
+
+example: `bash build_all.sh -b avaota-a1 -v jammy -a aarch64 -t cli -u avaota -p avaota -s avaota`
 
 ----
 ## Workflow

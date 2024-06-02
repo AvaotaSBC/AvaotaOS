@@ -7,12 +7,15 @@ Run in root user.
 The target rootfs will be generated in the build folder of the directory where the mkubuntu.sh script is located.
 
 Options: 
-  -m, --mirror MIRROR_ADDR      The URL/path of target mirror address.
-  -r, --rootfs ROOTFS_DIR       The directory name of ubuntu rootfs.
-  -v, --version UBUNTU_VER      The version of ubuntu.
-  -a, --arch ARCH               The arch of ubuntu.
-  -t, --type ROOTFS_TYPE        The type of rootfs: cli, xfce, gnome, kde.
-  -h, --help                    Show command help.
+  -m, --mirror MIRROR_ADDR         The URL/path of target mirror address.
+  -r, --rootfs ROOTFS_DIR          The directory name of ubuntu rootfs.
+  -v, --version UBUNTU_VER         The version of ubuntu.
+  -a, --arch ARCH                  The arch of ubuntu.
+  -t, --type ROOTFS_TYPE           The type of rootfs: cli, xfce, gnome, kde.
+  -u, --user SYS_USER              The normal user of rootfs.
+  -p, --password SYS_PASSWORD      The password of user.
+  -s, --supassword ROOT_PASSWORD   The password of root.
+  -h, --help                       Show command help.
 "
 
 help()
@@ -28,6 +31,9 @@ default_param() {
     TYPE=cli
     #MIRROR=http://mirrors.ustc.edu.cn/ubuntu-ports
     MIRROR=http://ports.ubuntu.com
+    SYS_USER=avaota
+    SYS_PASSWORD=avaota
+    ROOT_PASSWORD=avaota
 }
 
 parseargs()
@@ -64,6 +70,18 @@ parseargs()
             shift
         elif [ "x$1" == "x-c" -o "x$1" == "x--config" ]; then
             LINUX_CONFIG=`echo $2`
+            shift
+            shift
+        elif [ "x$1" == "x-u" -o "x$1" == "x--user" ]; then
+            SYS_USER=`echo $2`
+            shift
+            shift
+        elif [ "x$1" == "x-p" -o "x$1" == "x--password" ]; then
+            SYS_PASSWORD=`echo $2`
+            shift
+            shift
+        elif [ "x$1" == "x-s" -o "x$1" == "x--supassword" ]; then
+            ROOT_PASSWORD=`echo $2`
             shift
             shift
         else
@@ -200,10 +218,14 @@ EOF
 
 rm -rf ${ROOTFS}/kernel-deb
 
-cat <<EOF | chroot ${ROOTFS} adduser avaota && addgroup avaota sudo
-avaota
-avaota
-avaota
+#SYS_USER=avaota
+#SYS_PASSWORD=avaota
+#ROOT_PASSWORD=avaota
+
+cat <<EOF | chroot ${ROOTFS} adduser ${SYS_USER} && addgroup ${SYS_USER} sudo
+${SYS_USER}
+${SYS_PASSWORD}
+${SYS_PASSWORD}
 0
 0
 0
@@ -215,8 +237,8 @@ EOF
 # password：avaota
 
 cat <<EOF | chroot ${ROOTFS} passwd root
-avaota
-avaota
+${ROOT_PASSWORD}
+${ROOT_PASSWORD}
 EOF
 
 # username：root

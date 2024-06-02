@@ -11,6 +11,9 @@ Options:
   -a, --arch ARCH                     The arch of ubuntu.
   -t, --type ROOTFS_TYPE              The type of rootfs: cli, xfce, gnome, kde.
   -h, --help                          Show command help.
+  -u, --user SYS_USER                 The normal user of rootfs.
+  -p, --password SYS_PASSWORD         The password of user.
+  -s, --supassword ROOT_PASSWORD      The password of root.
 "
 
 help()
@@ -24,6 +27,9 @@ default_param() {
     VERSION=jammy
     ARCH=aarch64
     TYPE=cli
+    SYS_USER=avaota
+    SYS_PASSWORD=avaota
+    ROOT_PASSWORD=avaota
 }
 
 parseargs()
@@ -52,6 +58,18 @@ parseargs()
             shift
         elif [ "x$1" == "x-t" -o "x$1" == "x--type" ]; then
             TYPE=`echo $2`
+            shift
+            shift
+        elif [ "x$1" == "x-u" -o "x$1" == "x--user" ]; then
+            SYS_USER=`echo $2`
+            shift
+            shift
+        elif [ "x$1" == "x-p" -o "x$1" == "x--password" ]; then
+            SYS_PASSWORD=`echo $2`
+            shift
+            shift
+        elif [ "x$1" == "x-s" -o "x$1" == "x--supassword" ]; then
+            ROOT_PASSWORD=`echo $2`
             shift
             shift
         else
@@ -87,7 +105,7 @@ fi
 if [ -f ${workspace}/ubuntu-${VERSION}-${TYPE}/THIS-IS-NOT-YOUR-ROOT ];then
     echo "found rootfs, skip build rootfs."
 else
-    sudo mkdir ${ROOTFS} && sudo bash ../scripts/mkubuntu.sh -r ${ROOTFS} -v ${VERSION} -a ${ARCH} -t ${TYPE} -c ${LINUX_CONFIG}
+    sudo mkdir ${ROOTFS} && sudo bash ../scripts/mkubuntu.sh -r ${ROOTFS} -v ${VERSION} -a ${ARCH} -t ${TYPE} -c ${LINUX_CONFIG} -u ${SYS_USER} -p ${SYS_PASSWORD} -s ${ROOT_PASSWORD}
 fi
 bash ../scripts/pack.sh -t ${TYPE} -v ${VERSION}
 

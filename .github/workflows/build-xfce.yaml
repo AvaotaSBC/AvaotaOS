@@ -67,7 +67,7 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          sudo bash build_all.sh -b avaota-a1 -v jammy -a aarch64 -t xfce
+          sudo bash build_all.sh -b avaota-a1 -v jammy -a aarch64 -t xfce -u avaota -p avaota -s avaota
       - name: Upload
         if: needs.prepare_release.outputs.release_id != ''
         uses: xresloader/upload-to-github-release@v1

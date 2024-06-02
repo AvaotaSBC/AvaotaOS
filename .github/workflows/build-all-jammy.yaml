@@ -67,15 +67,15 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          sudo bash build_all.sh -b avaota-a1 -v jammy -a aarch64 -t cli
+          sudo bash build_all.sh -b avaota-a1 -v jammy -a aarch64 -t cli -u avaota -p avaota -s avaota
           sudo rm -rf build_dir/ubuntu-cli
-          sudo bash build_all.sh -b avaota-a1 -v jammy -a aarch64 -t gnome
+          sudo bash build_all.sh -b avaota-a1 -v jammy -a aarch64 -t gnome -u avaota -p avaota -s avaota
           sudo rm -rf build_dir/ubuntu-gnome
-          sudo bash build_all.sh -b avaota-a1 -v jammy -a aarch64 -t xfce
+          sudo bash build_all.sh -b avaota-a1 -v jammy -a aarch64 -t xfce -u avaota -p avaota -s avaota
           sudo rm -rf build_dir/ubuntu-xfce
-          sudo bash build_all.sh -b avaota-a1 -v jammy -a aarch64 -t kde
+          sudo bash build_all.sh -b avaota-a1 -v jammy -a aarch64 -t kde -u avaota -p avaota -s avaota
           sudo rm -rf build_dir/ubuntu-kde
-          sudo bash build_all.sh -b avaota-a1 -v jammy -a aarch64 -t lxqt
+          sudo bash build_all.sh -b avaota-a1 -v jammy -a aarch64 -t lxqt -u avaota -p avaota -s avaota
       - name: Upload
         if: needs.prepare_release.outputs.release_id != ''
         uses: xresloader/upload-to-github-release@v1
