@@ -7,13 +7,15 @@ The target sdcard.img will be generated in the build folder of the directory whe
 
 Options: 
   -b, --board BOARD                   The board name.
+  -m, --mirror MIRROR_ADDR            The URL/path of debian/ubuntu mirror address.
   -v, --version UBUNTU_VER            The version of ubuntu.
   -a, --arch ARCH                     The arch of ubuntu.
   -t, --type ROOTFS_TYPE              The type of rootfs: cli, xfce, gnome, kde.
-  -h, --help                          Show command help.
+  -k, --kernelmenuconfig              If run kernel menuconfig.
   -u, --user SYS_USER                 The normal user of rootfs.
   -p, --password SYS_PASSWORD         The password of user.
   -s, --supassword ROOT_PASSWORD      The password of root.
+  -h, --help                          Show command help.
 "
 
 help()
@@ -30,6 +32,9 @@ default_param() {
     SYS_USER=avaota
     SYS_PASSWORD=avaota
     ROOT_PASSWORD=avaota
+    #MIRROR=http://mirrors.ustc.edu.cn/ubuntu-ports
+    MIRROR=http://ports.ubuntu.com
+    KERNEL_MENUCONFIG=no
 }
 
 parseargs()
@@ -46,6 +51,10 @@ parseargs()
             shift
         elif [ "x$1" == "x-b" -o "x$1" == "x--board" ]; then
             BOARD=`echo $2`
+            shift
+            shift
+        elif [ "x$1" == "x-m" -o "x$1" == "x--mirror" ]; then
+            MIRROR=`echo $2`
             shift
             shift
         elif [ "x$1" == "x-v" -o "x$1" == "x--version" ]; then
@@ -70,6 +79,10 @@ parseargs()
             shift
         elif [ "x$1" == "x-s" -o "x$1" == "x--supassword" ]; then
             ROOT_PASSWORD=`echo $2`
+            shift
+            shift
+        elif [ "x$1" == "x-k" -o "x$1" == "x--kernelmenuconfig" ]; then
+            KERNEL_MENUCONFIG=`echo $2`
             shift
             shift
         else
@@ -99,13 +112,13 @@ bash ../scripts/mksyterkit.sh -b ${BOARD}
 if [ -d ${workspace}/${LINUX_CONFIG}-kernel-pkgs ];then
     echo "found kernel packages, skip build kernel."
 else
-    bash ../scripts/mklinux.sh -c ${LINUX_CONFIG}
+    bash ../scripts/mklinux.sh -c ${LINUX_CONFIG} -k ${KERNEL_MENUCONFIG}
 fi
 
 if [ -f ${workspace}/ubuntu-${VERSION}-${TYPE}/THIS-IS-NOT-YOUR-ROOT ];then
     echo "found rootfs, skip build rootfs."
 else
-    sudo mkdir ${ROOTFS} && sudo bash ../scripts/mkubuntu.sh -r ${ROOTFS} -v ${VERSION} -a ${ARCH} -t ${TYPE} -c ${LINUX_CONFIG} -u ${SYS_USER} -p ${SYS_PASSWORD} -s ${ROOT_PASSWORD}
+    sudo mkdir ${ROOTFS} && sudo bash ../scripts/mkubuntu.sh -m ${MIRROR}-r ${ROOTFS} -v ${VERSION} -a ${ARCH} -t ${TYPE} -c ${LINUX_CONFIG} -u ${SYS_USER} -p ${SYS_PASSWORD} -s ${ROOT_PASSWORD}
 fi
 bash ../scripts/pack.sh -t ${TYPE} -v ${VERSION}
 

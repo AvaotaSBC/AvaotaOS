@@ -7,6 +7,7 @@ The target Image & dtb will be generated in the build folder of the directory wh
 
 Options: 
   -c, --config CONFIG                 The linux configure file.
+  -k, --kernelmenuconfig              If run kernel menuconfig.
   -h, --help                          Show command help.
 "
 
@@ -17,7 +18,7 @@ help()
 }
 
 default_param() {
-    BOARD=avaota-a1
+    KERNEL_MENUCONFIG=no
 }
 
 parseargs()
@@ -36,6 +37,10 @@ parseargs()
             LINUX_CONFIG=`echo $2`
             shift
             shift
+        elif [ "x$1" == "x-k" -o "x$1" == "x--kernelmenuconfig" ]; then
+            KERNEL_MENUCONFIG=`echo $2`
+            shift
+            shift
         else
             echo `date` - ERROR, UNKNOWN params "$@"
             return 2
@@ -47,6 +52,9 @@ compile_linux_pkg()
 {
     cd ${workspace}/linux
     make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- ${LINUX_CONFIG}
+    if [ "${KERNEL_MENUCONFIG}" == "yes" ];then
+        make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- menuconfig
+    fi
     make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- deb-pkg -j$(nproc)
     cd ${workspace}
     rm ${workspace}/*dbg*.deb

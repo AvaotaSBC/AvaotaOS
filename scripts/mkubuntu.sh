@@ -9,8 +9,8 @@ The target rootfs will be generated in the build folder of the directory where t
 Options: 
   -m, --mirror MIRROR_ADDR         The URL/path of target mirror address.
   -r, --rootfs ROOTFS_DIR          The directory name of ubuntu rootfs.
-  -v, --version UBUNTU_VER         The version of ubuntu.
-  -a, --arch ARCH                  The arch of ubuntu.
+  -v, --version UBUNTU_VER         The version of ubuntu/debian.
+  -a, --arch ARCH                  The arch of ubuntu/debian.
   -t, --type ROOTFS_TYPE           The type of rootfs: cli, xfce, gnome, kde.
   -u, --user SYS_USER              The normal user of rootfs.
   -p, --password SYS_PASSWORD      The password of user.
