@@ -29,8 +29,11 @@ default_param() {
     ROOTFS=rootfs
     VERSION=jammy
     TYPE=cli
-    #MIRROR=http://mirrors.ustc.edu.cn/ubuntu-ports
-    MIRROR=http://ports.ubuntu.com
+    if [[ "${VERSION}" == "jammy" || "${VERSION}" == "noble" ]];then
+        MIRROR=http://ports.ubuntu.com
+    elif [[ "${VERSION}" == "bookworm" || "${VERSION}" == "trixie" ]];then
+        MIRROR=http://deb.debian.org/debian
+    fi
     SYS_USER=avaota
     SYS_PASSWORD=avaota
     ROOT_PASSWORD=avaota
@@ -127,39 +130,14 @@ echo You are running this scipt on a ${HOST_ARCH} mechine....
 if [ -d ${ROOTFS} ];then rm -rf ${ROOTFS}; fi
 mkdir ${ROOTFS}
 
-CDIMAGE_ADDR="https://cdimage.ubuntu.com"
-#CDIMAGE_ADDR="https://mirrors.ustc.edu.cn/ubuntu-cdimage"
-JAMMY_ARM64_ROOTFS="${CDIMAGE_ADDR}/ubuntu-base/releases/22.04/release/ubuntu-base-22.04-base-arm64.tar.gz"
-JAMMY_ARM32_ROOTFS="${CDIMAGE_ADDR}/ubuntu-base/releases/22.04/release/ubuntu-base-22.04-base-armhf.tar.gz"
-NOBLE_ARM64_ROOTFS="${CDIMAGE_ADDR}/ubuntu-base/releases/24.04/release/ubuntu-base-24.04-base-arm64.tar.gz"
-NOBLE_ARM32_ROOTFS="${CDIMAGE_ADDR}/ubuntu-base/releases/24.04/release/ubuntu-base-24.04-base-armhf.tar.gz"
-
 if [ "${ARCH}" == "aarch64" ];then
-    if [ "${VERSION}" == "jammy" ];then
-        wget ${JAMMY_ARM64_ROOTFS} -O rootfs.tar.gz
-    elif [ "${VERSION}" == "noble" ];then
-        wget ${NOBLE_ARM64_ROOTFS} -O rootfs.tar.gz
-    else
-    echo "unsupported version."
-    exit 2
-    fi
-
+sudo debootstrap --foreign --no-check-gpg --arch=arm64 ${VERSION} ${ROOTFS} ${MIRROR}
 elif [ "${ARCH}" == "armhf" ];then
-    if [ "${VERSION}" == "jammy" ];then
-        wget ${JAMMY_ARM32_ROOTFS} -O rootfs.tar.gz
-    elif [ "${VERSION}" == "noble" ];then
-        wget ${NOBLE_ARM32_ROOTFS} -O rootfs.tar.gz
-    else
-    echo "unsupported version."
-    exit 2
-    fi
+sudo debootstrap --foreign --no-check-gpg --arch=armhf ${VERSION} ${ROOTFS} ${MIRROR}
 else
 echo "unsupported arch."
 exit 2
 fi
-
-tar -zxvf rootfs.tar.gz -C ${ROOTFS}
-rm rootfs.tar.gz
 
 if [ "${HOST_ARCH}" != "${ARCH}" ];then
 sudo cp /usr/bin/qemu-${ARCH}-static ${ROOTFS}/usr/bin
@@ -167,14 +145,22 @@ else
 echo "You are running this script on a ${ARCH} mechine, progress...."
 fi
 
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} dpkg --configure -a
+sudo LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} /debootstrap/debootstrap --second-stage
+sudo LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} dpkg --configure -a
 
 if [ "${VERSION}" == "jammy" ];then
-sed -i "s|http://ports.ubuntu.com/ubuntu-ports|${MIRROR}|g" ${ROOTFS}/etc/apt/sources.list
+    cat ../target/conf/jammy/sources.list > ${ROOTFS}/etc/apt/sources.list
+    sed -i "s|http://ports.ubuntu.com/ubuntu-ports|${MIRROR}|g" ${ROOTFS}/etc/apt/sources.list
 elif [ "${VERSION}" == "noble" ];then
-sed -i "s|http://ports.ubuntu.com/ubuntu-ports|${MIRROR}|g" ${ROOTFS}/etc/apt/sources.list.d/ubuntu.source
+     "# Ubuntu sources have moved to /etc/apt/sources.list.d/ubuntu.sources" > ${ROOTFS}/etc/apt/sources.list
+    cat ../target/conf/noble/ubuntu.sources > ${ROOTFS}/etc/apt/sources.list.d/ubuntu.sources
+    sed -i "s|http://ports.ubuntu.com/ubuntu-ports|${MIRROR}|g" ${ROOTFS}/etc/apt/sources.list.d/ubuntu.sources
+elif [[ "${VERSION}" == "bookworm" || "${VERSION}" == "trixie" ]];then
+    rm ${ROOTFS}/etc/apt/sources.list
+    cat ../target/conf/debian-common-new/debian.sources > ${ROOTFS}/etc/apt/sources.list.d/debian.sources
+    sed -i "s|http://deb.debian.org/debian|${MIRROR}|g" ${ROOTFS}/etc/apt/sources.list.d/debian.sources
+    sed -i "s|VERSION|${VERSION}|g" ${ROOTFS}/etc/apt/sources.list.d/debian.sources
 fi
-
 
 mount --bind /dev ${ROOTFS}/dev
 mount -t proc /proc ${ROOTFS}/proc
@@ -188,10 +174,17 @@ LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get update
 
 INSTALL_PACKAGES ../os/${VERSION}.conf
 
-XFCE_DESKTOP="xubuntu-desktop"
-GNOME_DESKTOP="ubuntu-desktop"
-KDE_DESKTOP="kubuntu-desktop"
-LXQT_DESKTOP="lubuntu-desktop"
+if [[ "${VERSION}" == "jammy" || "${VERSION}" == "noble" ]];then
+    XFCE_DESKTOP="xubuntu-desktop"
+    GNOME_DESKTOP="ubuntu-desktop"
+    KDE_DESKTOP="kubuntu-desktop"
+    LXQT_DESKTOP="lubuntu-desktop"
+elif [[ "${VERSION}" == "bookworm" || "${VERSION}" == "trixie" ]];then
+    XFCE_DESKTOP="xorg xinput xfce4 desktop-base lightdm xfce4-terminal tango-icon-theme xfce4-notifyd xfce4-power-manager pulseaudio pulseaudio-module-bluetooth alsa-utils dbus-user-session eject gvfs gvfs-backends udisks2 e2fsprogs libblockdev-crypto2 blueman xarchiver"
+    GNOME_DESKTOP="gnome-core avahi-daemon desktop-base file-roller gnome-tweaks gstreamer1.0-libav gstreamer1.0-plugins-ugly libgsf-bin libproxy1-plugin-networkmanager network-manager-gnome"
+    KDE_DESKTOP="kde-plasma-desktop"
+    LXQT_DESKTOP="xorg xinput lxqt pulseaudio pulseaudio-module-bluetooth alsa-utils dbus-user-session eject gvfs gvfs-backends udisks2 e2fsprogs libblockdev-crypto2 blueman xarchiver"
+fi
 
 if [ "${TYPE}" != "cli" ];then
     echo "Build desktop image."
@@ -248,11 +241,16 @@ sed -i "s|#PermitRootLogin prohibit-password|PermitRootLogin yes|g" ${ROOTFS}/et
 
 # Allow root ssh login
 
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} netplan set ethernets.eth0.dhcp4=true
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} netplan set ethernets.eth0.dhcp6=true
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} netplan set ethernets.eth1.dhcp4=true
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} netplan set ethernets.eth1.dhcp6=true
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} sudo chmod 600 /etc/netplan/*.yaml
+if [[ "${VERSION}" == "jammy" || "${VERSION}" == "noble" ]];then
+    LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} netplan set ethernets.eth0.dhcp4=true
+    LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} netplan set ethernets.eth0.dhcp6=true
+    LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} netplan set ethernets.eth1.dhcp4=true
+    LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} netplan set ethernets.eth1.dhcp6=true
+    LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} sudo chmod 600 /etc/netplan/*.yaml
+elif [[ "${VERSION}" == "bookworm" || "${VERSION}" == "trixie" ]];then
+    LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get update
+    LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get install ifupdown
+fi
 
 if [ "${ARCH}" == "aarch64" ];then
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} dpkg --add-architecture armhf

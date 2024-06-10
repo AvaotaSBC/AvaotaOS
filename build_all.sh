@@ -32,8 +32,11 @@ default_param() {
     SYS_USER=avaota
     SYS_PASSWORD=avaota
     ROOT_PASSWORD=avaota
-    #MIRROR=http://mirrors.ustc.edu.cn/ubuntu-ports
-    MIRROR=http://ports.ubuntu.com
+    if [[ "${VERSION}" == "jammy" || "${VERSION}" == "noble" ]];then
+        MIRROR=http://ports.ubuntu.com
+    elif [[ "${VERSION}" == "bookworm" || "${VERSION}" == "trixie" ]];then
+        MIRROR=http://deb.debian.org/debian
+    fi
     KERNEL_MENUCONFIG=no
 }
 
@@ -96,7 +99,7 @@ default_param
 parseargs "$@" || help $?
 
 sudo apt-get install gcc-arm-none-eabi cmake build-essential gcc-aarch64-linux-gnu mtools qemu-user-static bc pkg-config -y
-sudo apt install mmdebstrap ubuntu-keyring automake autoconf gcc make pixz libconfuse2 libconfuse-common libconfuse-dev -y
+sudo apt install debootstrap ubuntu-keyring debian-keyring automake autoconf gcc make pixz libconfuse2 libconfuse-common libconfuse-dev -y
 
 mkdir build_dir 
 cd build_dir
@@ -118,7 +121,7 @@ fi
 if [ -f ${workspace}/ubuntu-${VERSION}-${TYPE}/THIS-IS-NOT-YOUR-ROOT ];then
     echo "found rootfs, skip build rootfs."
 else
-    sudo mkdir ${ROOTFS} && sudo bash ../scripts/mkubuntu.sh -m ${MIRROR}-r ${ROOTFS} -v ${VERSION} -a ${ARCH} -t ${TYPE} -c ${LINUX_CONFIG} -u ${SYS_USER} -p ${SYS_PASSWORD} -s ${ROOT_PASSWORD}
+    sudo mkdir ${ROOTFS} && sudo bash ../scripts/mkrootfs.sh -m ${MIRROR} -r ${ROOTFS} -v ${VERSION} -a ${ARCH} -t ${TYPE} -c ${LINUX_CONFIG} -u ${SYS_USER} -p ${SYS_PASSWORD} -s ${ROOT_PASSWORD}
 fi
 bash ../scripts/pack.sh -t ${TYPE} -v ${VERSION}
 
