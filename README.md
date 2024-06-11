@@ -36,9 +36,13 @@ SYSTEM_DISTRO:
 
 MIRROR:
 such as: 
+
 `http://ports.ubuntu.com`
+
 `http://deb.debian.org/debian`
+
 `https://mirrors.ustc.edu.cn/ubuntu-ports`
+
 `https://mirrors.ustc.edu.cn/debian`
 
 ARCH:
@@ -69,5 +73,6 @@ KERNEL_MENUCONFIG:
 2.  no
 
 example: 
+
 `bash build_all.sh -b avaota-a1 -m http://ports.ubuntu.com -v jammy -a aarch64 -t cli -u avaota -p avaota -s avaota -k no`
 
