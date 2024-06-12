@@ -120,44 +120,50 @@ INSTALL_PACKAGES(){
     done
 }
 
+run_debootstrap(){
+
+echo You are running this scipt on a ${HOST_ARCH} mechine....
+
+    if [ -d ${ROOTFS} ];then rm -rf ${ROOTFS}; fi
+    mkdir ${ROOTFS}
+
+    if [ "${ARCH}" == "aarch64" ];then
+        sudo debootstrap --foreign --no-check-gpg --arch=arm64 ${VERSION} ${ROOTFS} ${MIRROR}
+    elif [ "${ARCH}" == "armhf" ];then
+        sudo debootstrap --foreign --no-check-gpg --arch=armhf ${VERSION} ${ROOTFS} ${MIRROR}
+    else
+        echo "unsupported arch."
+        exit 2
+    fi
+
+    if [ "${HOST_ARCH}" != "${ARCH}" ];then
+        sudo cp /usr/bin/qemu-${ARCH}-static ${ROOTFS}/usr/bin
+    else
+        echo "You are running this script on a ${ARCH} mechine, progress...."
+    fi
+
+    sudo LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} /debootstrap/debootstrap --second-stage
+    sudo LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} dpkg --configure -a
+
+}
+
 HOST_ARCH=$(arch)
 
 default_param
 parseargs "$@" || help $?
 
-echo You are running this scipt on a ${HOST_ARCH} mechine....
-
-if [ -d ${ROOTFS} ];then rm -rf ${ROOTFS}; fi
-mkdir ${ROOTFS}
-
-if [ "${ARCH}" == "aarch64" ];then
-sudo debootstrap --foreign --no-check-gpg --arch=arm64 ${VERSION} ${ROOTFS} ${MIRROR}
-elif [ "${ARCH}" == "armhf" ];then
-sudo debootstrap --foreign --no-check-gpg --arch=armhf ${VERSION} ${ROOTFS} ${MIRROR}
-else
-echo "unsupported arch."
-exit 2
-fi
-
-if [ "${HOST_ARCH}" != "${ARCH}" ];then
-sudo cp /usr/bin/qemu-${ARCH}-static ${ROOTFS}/usr/bin
-else
-echo "You are running this script on a ${ARCH} mechine, progress...."
-fi
-
-sudo LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} /debootstrap/debootstrap --second-stage
-sudo LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} dpkg --configure -a
+run_debootstrap
 
 if [ "${VERSION}" == "jammy" ];then
-    cat ../target/conf/jammy/sources.list > ${ROOTFS}/etc/apt/sources.list
+    cat ../os/${VERSION}/apt-list/sources.list > ${ROOTFS}/etc/apt/sources.list
     sed -i "s|http://ports.ubuntu.com/ubuntu-ports|${MIRROR}|g" ${ROOTFS}/etc/apt/sources.list
 elif [ "${VERSION}" == "noble" ];then
      "# Ubuntu sources have moved to /etc/apt/sources.list.d/ubuntu.sources" > ${ROOTFS}/etc/apt/sources.list
-    cat ../target/conf/noble/ubuntu.sources > ${ROOTFS}/etc/apt/sources.list.d/ubuntu.sources
+    cat ../os/${VERSION}/apt-list/ubuntu.sources > ${ROOTFS}/etc/apt/sources.list.d/ubuntu.sources
     sed -i "s|http://ports.ubuntu.com/ubuntu-ports|${MIRROR}|g" ${ROOTFS}/etc/apt/sources.list.d/ubuntu.sources
 elif [[ "${VERSION}" == "bookworm" || "${VERSION}" == "trixie" ]];then
     rm ${ROOTFS}/etc/apt/sources.list
-    cat ../target/conf/debian-common-new/debian.sources > ${ROOTFS}/etc/apt/sources.list.d/debian.sources
+    cat ../os/${VERSION}/apt-list/debian.sources > ${ROOTFS}/etc/apt/sources.list.d/debian.sources
     sed -i "s|http://deb.debian.org/debian|${MIRROR}|g" ${ROOTFS}/etc/apt/sources.list.d/debian.sources
     sed -i "s|VERSION|${VERSION}|g" ${ROOTFS}/etc/apt/sources.list.d/debian.sources
 fi
@@ -172,35 +178,11 @@ trap 'UMOUNT_ALL' EXIT
 
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get update
 
-INSTALL_PACKAGES ../os/${VERSION}.conf
-
-if [[ "${VERSION}" == "jammy" || "${VERSION}" == "noble" ]];then
-    XFCE_DESKTOP="xubuntu-desktop"
-    GNOME_DESKTOP="ubuntu-desktop"
-    KDE_DESKTOP="kubuntu-desktop"
-    LXQT_DESKTOP="lubuntu-desktop"
-elif [[ "${VERSION}" == "bookworm" || "${VERSION}" == "trixie" ]];then
-    XFCE_DESKTOP="xorg xinput xfce4 desktop-base lightdm xfce4-terminal tango-icon-theme xfce4-notifyd xfce4-power-manager pulseaudio pulseaudio-module-bluetooth alsa-utils dbus-user-session eject gvfs gvfs-backends udisks2 e2fsprogs libblockdev-crypto2 blueman xarchiver"
-    GNOME_DESKTOP="gnome-core avahi-daemon desktop-base file-roller gnome-tweaks gstreamer1.0-libav gstreamer1.0-plugins-ugly libgsf-bin libproxy1-plugin-networkmanager network-manager-gnome"
-    KDE_DESKTOP="kde-plasma-desktop"
-    LXQT_DESKTOP="xorg xinput lxqt pulseaudio pulseaudio-module-bluetooth alsa-utils dbus-user-session eject gvfs gvfs-backends udisks2 e2fsprogs libblockdev-crypto2 blueman xarchiver"
-fi
+INSTALL_PACKAGES ../os/${VERSION}/base-packages.list
 
 if [ "${TYPE}" != "cli" ];then
     echo "Build desktop image."
-    if [ "${TYPE}" == "xfce" ];then
-        INCLUDE_PACKAGES="${XFCE_DESKTOP}"
-    elif [ "${TYPE}" == "gnome" ];then
-        INCLUDE_PACKAGES="${GNOME_DESKTOP}"
-    elif [ "${TYPE}" == "kde" ];then
-        INCLUDE_PACKAGES="${KDE_DESKTOP}"
-    elif [ "${TYPE}" == "lxqt" ];then
-        INCLUDE_PACKAGES="${LXQT_DESKTOP}"
-    else
-        echo "unsupported desktop type."
-        exit 2
-    fi
-    LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get install -y ${INCLUDE_PACKAGES}
+    INSTALL_PACKAGES ../os/${VERSION}/${TYPE}-packages.list
 fi
 
 cp -r ${LINUX_CONFIG}-kernel-pkgs ${ROOTFS}/kernel-deb

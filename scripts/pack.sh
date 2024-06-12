@@ -133,7 +133,7 @@ pack_rootfs()
     
     rm ${workspace}/rootfs_dir/THIS-IS-NOT-YOUR-ROOT
     
-    cp -rfp ${workspace}/../firmware ${workspace}/rootfs_dir/lib/
+    cp -rfp ${workspace}/../target/firmware ${workspace}/rootfs_dir/lib/
     
     sync
     sync

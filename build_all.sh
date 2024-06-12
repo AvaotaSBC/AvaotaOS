@@ -25,24 +25,21 @@ help()
 }
 
 default_param() {
-    BOARD=avaota-a1
-    VERSION=jammy
+    BOARD=none
+    VERSION=none
     ARCH=aarch64
-    TYPE=cli
+    TYPE=none
     SYS_USER=avaota
     SYS_PASSWORD=avaota
     ROOT_PASSWORD=avaota
-    if [[ "${VERSION}" == "jammy" || "${VERSION}" == "noble" ]];then
-        MIRROR=http://ports.ubuntu.com
-    elif [[ "${VERSION}" == "bookworm" || "${VERSION}" == "trixie" ]];then
-        MIRROR=http://deb.debian.org/debian
-    fi
-    KERNEL_MENUCONFIG=no
+    KERNEL_MENUCONFIG=none
+    MIRROR=none
 }
 
 parseargs()
 {
     if [ "x$#" == "x0" ]; then
+        EXTRA_ARGS=yes
         return 0
     fi
 
@@ -95,13 +92,120 @@ parseargs()
     done
 }
 
+input_box(){
+    if [ "${BOARD}" == "none" ];then
+        temp=`mktemp -t test.XXXXXX`
+        dialog --clear --shadow --backtitle "AvaotaOS Build Framework" --title "Boards" --menu "select board" 10 40 2 \
+            avaota-a1 "Avaota A1" \
+            yuzuki-chameleon "Yuzuki Chameleon" \
+            2> $temp
+        BOARD=$(cat $temp)
+        clear
+        rm $temp
+    fi
+    if [ "${VERSION}" == "none" ];then
+        temp=`mktemp -t test.XXXXXX`
+        dialog --clear --shadow --backtitle "AvaotaOS Build Framework" --title "System Distro" --menu "select distro" 10 40 4 \
+            jammy "Ubuntu 22.04" \
+            noble "Ubuntu 24.04" \
+            bookworm "Debian 12" \
+            trixie "Debian 13" \
+            2> $temp
+        VERSION=$(cat $temp)
+        clear
+        rm $temp
+    fi
+    if [ "${TYPE}" == "none" ];then
+        temp=`mktemp -t test.XXXXXX`
+        dialog --clear --shadow --backtitle "AvaotaOS Build Framework" --title "System Type" --menu "select desktop" 10 40 5 \
+            cli "Console Version" \
+            gnome "Gnome Desktop" \
+            xfce "XFCE Desktop" \
+            kde "Kde Desktop" \
+            lxqt "LXQT Desktop" \
+            2> $temp
+        TYPE=$(cat $temp)
+        clear
+        rm $temp
+    fi
+    if [ "${KERNEL_MENUCONFIG}" == "none" ];then
+        temp=`mktemp -t test.XXXXXX`
+        dialog --clear --shadow --backtitle "AvaotaOS Build Framework" --title "Kernel Configure" --menu "select configure" 10 40 2 \
+            no "Dont't run kernel menuconfig" \
+            yes "Run kernel menuconfig" \
+            2> $temp
+        KERNEL_MENUCONFIG=$(cat $temp)
+        clear
+        rm $temp
+    fi
+    if [ "${MIRROR}" == "none" ];then
+        if [[ "${VERSION}" == "jammy" || "${VERSION}" == "noble" ]];then
+            MIRROR=http://ports.ubuntu.com
+        elif [[ "${VERSION}" == "bookworm" || "${VERSION}" == "trixie" ]];then
+            MIRROR=http://deb.debian.org/debian
+        fi
+    fi
+    if [ "${EXTRA_ARGS}" == "yes" ];then
+        temp=`mktemp -t test.XXXXXX`
+        dialog --clear --shadow --backtitle "Create System User" \
+            --title "System Normal User" \
+            --inputbox "User Name:" 10 40 "${SYS_USER}" 2> $temp
+        SYS_USER=$(cat $temp)
+        rm $temp
+
+        temp=`mktemp -t test.XXXXXX`
+        dialog --clear --shadow --backtitle "Create System User" \
+            --title "System Normal User" \
+            --inputbox "User Password:" 10 40 "${SYS_PASSWORD}" 2> $temp
+        SYS_PASSWORD=$(cat $temp)
+        rm $temp
+
+        temp=`mktemp -t test.XXXXXX`
+        dialog --clear --shadow --backtitle "Change ROOT Password" \
+            --title "ROOT User" \
+            --inputbox "ROOT Password:" 10 40 "${ROOT_PASSWORD}" 2> $temp
+        ROOT_PASSWORD=$(cat $temp)
+        rm $temp
+
+        temp=`mktemp -t test.XXXXXX`
+        dialog --clear --shadow --backtitle "Change DEB Mirror" \
+            --title "DEB Mirror" \
+            --inputbox "Mirror URL:" 10 40 "${MIRROR}" 2> $temp
+        MIRROR=$(cat $temp)
+        rm $temp
+    fi
+    clear
+}
+
+print_args(){
+    echo "------[ Config Info ]------"
+    echo "BOARD=${BOARD}"
+    echo "VERSION=${VERSION}"
+    echo "ARCH=${ARCH}"
+    echo "TYPE=${TYPE}"
+    echo "SYS_USER=${SYS_USER}"
+    echo "SYS_PASSWORD=${SYS_PASSWORD}"
+    echo "ROOT_PASSWORD=${ROOT_PASSWORD}"
+    echo "MIRROR=${MIRROR}"
+    echo "KERNEL_MENUCONFIG=${KERNEL_MENUCONFIG}"
+    echo "--------------------------"
+    echo "You can run the following command at the next time:"
+    echo "sudo bash build_all.sh -b ${BOARD} -m ${MIRROR} -v ${VERSION} -t ${TYPE} -u ${SYS_USER} -p ${SYS_PASSWORD} -s ${ROOT_PASSWORD} -k ${KERNEL_MENUCONFIG}"
+}
+
+sudo apt-get install gcc-arm-none-eabi cmake build-essential gcc-aarch64-linux-gnu mtools qemu-user-static bc pkg-config dialog -y
+sudo apt install debootstrap ubuntu-keyring debian-keyring automake autoconf gcc make pixz libconfuse2 libconfuse-common libconfuse-dev -y
+
+EXTRA_ARGS=no
 default_param
 parseargs "$@" || help $?
 
-sudo apt-get install gcc-arm-none-eabi cmake build-essential gcc-aarch64-linux-gnu mtools qemu-user-static bc pkg-config -y
-sudo apt install debootstrap ubuntu-keyring debian-keyring automake autoconf gcc make pixz libconfuse2 libconfuse-common libconfuse-dev -y
+input_box
+print_args
 
-mkdir build_dir 
+if [ ! -d build_dir ];then
+    mkdir build_dir
+fi
 cd build_dir
 workspace=$(pwd)
 cd ${workspace}

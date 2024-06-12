@@ -1,0 +1,10 @@
+gnome-core
+avahi-daemon
+desktop-base
+file-roller
+gnome-tweaks
+gstreamer1.0-libav
+gstreamer1.0-plugins-ugly
+libgsf-bin
+libproxy1-plugin-networkmanager
+network-manager-gnome

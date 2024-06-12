@@ -1,0 +1,15 @@
+xorg
+xinput
+lxqt
+pulseaudio
+pulseaudio-module-bluetooth
+alsa-utils
+dbus-user-session
+eject
+gvfs
+gvfs-backends
+udisks2
+e2fsprogs
+libblockdev-crypto2
+blueman
+xarchiver
