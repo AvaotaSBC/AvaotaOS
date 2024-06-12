@@ -147,13 +147,7 @@ echo You are running this scipt on a ${HOST_ARCH} mechine....
 
 }
 
-HOST_ARCH=$(arch)
-
-default_param
-parseargs "$@" || help $?
-
-run_debootstrap
-
+prepare_apt-list(){
 if [ "${VERSION}" == "jammy" ];then
     cat ../os/${VERSION}/apt-list/sources.list > ${ROOTFS}/etc/apt/sources.list
     sed -i "s|http://ports.ubuntu.com/ubuntu-ports|${MIRROR}|g" ${ROOTFS}/etc/apt/sources.list
@@ -167,6 +161,15 @@ elif [[ "${VERSION}" == "bookworm" || "${VERSION}" == "trixie" ]];then
     sed -i "s|http://deb.debian.org/debian|${MIRROR}|g" ${ROOTFS}/etc/apt/sources.list.d/debian.sources
     sed -i "s|VERSION|${VERSION}|g" ${ROOTFS}/etc/apt/sources.list.d/debian.sources
 fi
+}
+
+HOST_ARCH=$(arch)
+
+default_param
+parseargs "$@" || help $?
+
+run_debootstrap
+prepare_apt-list
 
 mount --bind /dev ${ROOTFS}/dev
 mount -t proc /proc ${ROOTFS}/proc

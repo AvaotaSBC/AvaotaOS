@@ -95,45 +95,57 @@ parseargs()
 input_box(){
     if [ "${BOARD}" == "none" ];then
         temp=`mktemp -t test.XXXXXX`
-        dialog --clear --shadow --backtitle "AvaotaOS Build Framework" --title "Boards" --menu "select board" 10 40 2 \
+        dialog --clear --shadow --backtitle "AvaotaOS Build Framework" --title "Boards" --menu "select board" 15 60 2 \
             avaota-a1 "Avaota A1" \
             yuzuki-chameleon "Yuzuki Chameleon" \
             2> $temp
+        if [ $? == 1 ];then
+          exit 2
+        fi
         BOARD=$(cat $temp)
         clear
         rm $temp
     fi
     if [ "${VERSION}" == "none" ];then
         temp=`mktemp -t test.XXXXXX`
-        dialog --clear --shadow --backtitle "AvaotaOS Build Framework" --title "System Distro" --menu "select distro" 10 40 4 \
+        dialog --clear --shadow --backtitle "AvaotaOS Build Framework" --title "System Distro" --menu "select distro" 15 60 2 \
             jammy "Ubuntu 22.04" \
             noble "Ubuntu 24.04" \
             bookworm "Debian 12" \
             trixie "Debian 13" \
             2> $temp
+        if [ $? == 1 ];then
+          exit 2
+        fi
         VERSION=$(cat $temp)
         clear
         rm $temp
     fi
     if [ "${TYPE}" == "none" ];then
         temp=`mktemp -t test.XXXXXX`
-        dialog --clear --shadow --backtitle "AvaotaOS Build Framework" --title "System Type" --menu "select desktop" 10 40 5 \
+        dialog --clear --shadow --backtitle "AvaotaOS Build Framework" --title "System Type" --menu "select desktop" 15 60 2 \
             cli "Console Version" \
             gnome "Gnome Desktop" \
             xfce "XFCE Desktop" \
             kde "Kde Desktop" \
             lxqt "LXQT Desktop" \
             2> $temp
+        if [ $? == 1 ];then
+          exit 2
+        fi
         TYPE=$(cat $temp)
         clear
         rm $temp
     fi
     if [ "${KERNEL_MENUCONFIG}" == "none" ];then
         temp=`mktemp -t test.XXXXXX`
-        dialog --clear --shadow --backtitle "AvaotaOS Build Framework" --title "Kernel Configure" --menu "select configure" 10 40 2 \
+        dialog --clear --shadow --backtitle "AvaotaOS Build Framework" --title "Kernel Configure" --menu "select configure" 15 60 2 \
             no "Dont't run kernel menuconfig" \
             yes "Run kernel menuconfig" \
             2> $temp
+        if [ $? == 1 ];then
+          exit 2
+        fi
         KERNEL_MENUCONFIG=$(cat $temp)
         clear
         rm $temp
@@ -147,30 +159,42 @@ input_box(){
     fi
     if [ "${EXTRA_ARGS}" == "yes" ];then
         temp=`mktemp -t test.XXXXXX`
-        dialog --clear --shadow --backtitle "Create System User" \
-            --title "System Normal User" \
-            --inputbox "User Name:" 10 40 "${SYS_USER}" 2> $temp
+        dialog --clear --shadow --backtitle "AvaotaOS Build Framework" \
+            --title "Create System Normal User" \
+            --inputbox "User Name:" 15 60 "${SYS_USER}" 2> $temp
+        if [ $? == 1 ];then
+          exit 2
+        fi
         SYS_USER=$(cat $temp)
         rm $temp
 
         temp=`mktemp -t test.XXXXXX`
-        dialog --clear --shadow --backtitle "Create System User" \
-            --title "System Normal User" \
-            --inputbox "User Password:" 10 40 "${SYS_PASSWORD}" 2> $temp
+        dialog --clear --shadow --backtitle "AvaotaOS Build Framework" \
+            --title "Create System Normal User Password" \
+            --inputbox "User Password:" 15 60 "${SYS_PASSWORD}" 2> $temp
+        if [ $? == 1 ];then
+          exit 2
+        fi
         SYS_PASSWORD=$(cat $temp)
         rm $temp
 
         temp=`mktemp -t test.XXXXXX`
-        dialog --clear --shadow --backtitle "Change ROOT Password" \
-            --title "ROOT User" \
-            --inputbox "ROOT Password:" 10 40 "${ROOT_PASSWORD}" 2> $temp
+        dialog --clear --shadow --backtitle "AvaotaOS Build Framework" \
+            --title "Change ROOT Password" \
+            --inputbox "ROOT Password:" 15 60 "${ROOT_PASSWORD}" 2> $temp
+        if [ $? == 1 ];then
+          exit 2
+        fi
         ROOT_PASSWORD=$(cat $temp)
         rm $temp
 
         temp=`mktemp -t test.XXXXXX`
-        dialog --clear --shadow --backtitle "Change DEB Mirror" \
-            --title "DEB Mirror" \
-            --inputbox "Mirror URL:" 10 40 "${MIRROR}" 2> $temp
+        dialog --clear --shadow --backtitle "AvaotaOS Build Framework" \
+            --title "Change DEB Mirror" \
+            --inputbox "Mirror URL:" 15 60 "${MIRROR}" 2> $temp
+        if [ $? == 1 ];then
+          exit 2
+        fi
         MIRROR=$(cat $temp)
         rm $temp
     fi
