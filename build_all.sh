@@ -1,4 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
+#
+# SPDX-License-Identifier: GPL-3.0
+#
+# This file is a part of the Avaota Build Framework
+# https://github.com/AvaotaSBC/AvaotaOS/
 
 __usage="
 Usage: build_all [OPTIONS]
@@ -15,6 +20,8 @@ Options:
   -u, --user SYS_USER                 The normal user of rootfs.
   -p, --password SYS_PASSWORD         The password of user.
   -s, --supassword ROOT_PASSWORD      The password of root.
+  -l, --local LOCAL_SOURCES           Use local kernel,u-boot,syterkit
+  -g, --githubmirror GITHUB_MIRROR    Use GitHub mirror.
   -h, --help                          Show command help.
 "
 
@@ -27,13 +34,14 @@ help()
 default_param() {
     BOARD=none
     VERSION=none
-    ARCH=aarch64
     TYPE=none
     SYS_USER=avaota
     SYS_PASSWORD=avaota
     ROOT_PASSWORD=avaota
     KERNEL_MENUCONFIG=none
     MIRROR=none
+    GITHUB_MIRROR=none
+    LOCAL=no
 }
 
 parseargs()
@@ -61,10 +69,6 @@ parseargs()
             VERSION=`echo $2`
             shift
             shift
-        elif [ "x$1" == "x-a" -o "x$1" == "x--arch" ]; then
-            ARCH=`echo $2`
-            shift
-            shift
         elif [ "x$1" == "x-t" -o "x$1" == "x--type" ]; then
             TYPE=`echo $2`
             shift
@@ -83,6 +87,14 @@ parseargs()
             shift
         elif [ "x$1" == "x-k" -o "x$1" == "x--kernelmenuconfig" ]; then
             KERNEL_MENUCONFIG=`echo $2`
+            shift
+            shift
+        elif [ "x$1" == "x-l" -o "x$1" == "x--local" ]; then
+            LOCAL=`echo $2`
+            shift
+            shift
+        elif [ "x$1" == "x-i" -o "x$1" == "x--githubmirror" ]; then
+            GITHUB_MIRROR=`echo $2`
             shift
             shift
         else
@@ -197,24 +209,54 @@ input_box(){
         fi
         MIRROR=$(cat $temp)
         rm $temp
+        
+        if [ "${GITHUB_MIRROR}" == "none" ];then
+        temp=`mktemp -t test.XXXXXX`
+        dialog --clear --shadow --backtitle "AvaotaOS Build Framework" --title "Use GitHub Mirror" --menu "github mirror" 15 60 2 \
+            no "Dont't use Github Proxy" \
+            yes "Use Github Proxy" \
+            2> $temp
+        if [ $? == 1 ];then
+          exit 2
+        fi
+        
+        IF_GITHUB_MIRROR=$(cat $temp)
+        if [ ${IF_GITHUB_MIRROR} == "yes" ];then
+            in_temp=`mktemp -t test.XXXXXX`
+            dialog --clear --shadow --backtitle "AvaotaOS Build Framework" \
+                --title "Setup GitHub Mirror" \
+                --inputbox "Github Mirror URL:" 15 60 "https://mirror.ghproxy.com" 2> $in_temp
+            if [ $? == 1 ];then
+              exit 2
+            fi
+            GITHUB_MIRROR=$(cat $in_temp)
+            rm $in_temp
+        elif [ ${IF_GITHUB_MIRROR} == "no" ];then
+            GITHUB_MIRROR="none"
+        fi
+        clear
+        rm $temp
+        fi
     fi
     clear
 }
 
 print_args(){
-    echo "------[ Config Info ]------"
-    echo "BOARD=${BOARD}"
-    echo "VERSION=${VERSION}"
-    echo "ARCH=${ARCH}"
-    echo "TYPE=${TYPE}"
-    echo "SYS_USER=${SYS_USER}"
-    echo "SYS_PASSWORD=${SYS_PASSWORD}"
-    echo "ROOT_PASSWORD=${ROOT_PASSWORD}"
-    echo "MIRROR=${MIRROR}"
-    echo "KERNEL_MENUCONFIG=${KERNEL_MENUCONFIG}"
-    echo "--------------------------"
+    echo "+-------[ Config Info ]-------+"
+    echo "| BOARD=${BOARD}"
+    echo "| VERSION=${VERSION}"
+    echo "| ARCH=${ARCH}"
+    echo "| TYPE=${TYPE}"
+    echo "| SYS_USER=${SYS_USER}"
+    echo "| SYS_PASSWORD=${SYS_PASSWORD}"
+    echo "| ROOT_PASSWORD=${ROOT_PASSWORD}"
+    echo "| MIRROR=${MIRROR}"
+    echo "| KERNEL_MENUCONFIG=${KERNEL_MENUCONFIG}"
+    echo "| LOCAL=${LOCAL}"
+    echo "| GITHUB_MIRROR=${GITHUB_MIRROR}"
+    echo "+-------------------------+"
     echo "You can run the following command at the next time:"
-    echo "sudo bash build_all.sh -b ${BOARD} -m ${MIRROR} -v ${VERSION} -t ${TYPE} -u ${SYS_USER} -p ${SYS_PASSWORD} -s ${ROOT_PASSWORD} -k ${KERNEL_MENUCONFIG}"
+    echo "sudo bash build_all.sh -b ${BOARD} -m ${MIRROR} -v ${VERSION} -t ${TYPE} -u ${SYS_USER} -p ${SYS_PASSWORD} -s ${ROOT_PASSWORD} -k ${KERNEL_MENUCONFIG} -l ${LOCAL} -i ${GITHUB_MIRROR}"
 }
 
 sudo apt-get install gcc-arm-none-eabi cmake build-essential gcc-aarch64-linux-gnu mtools qemu-user-static bc pkg-config dialog -y
@@ -237,13 +279,16 @@ ROOTFS=${workspace}/rootfs
 
 source ../boards/${BOARD}.conf
 
-bash ../scripts/fetch.sh -b ${BOARD} -v ${VERSION} -a ${ARCH}
+if [ ${LOCAL} == "no" ];then
+bash ../scripts/fetch.sh -b ${BOARD} -i ${GITHUB_MIRROR}
+fi
+
 bash ../scripts/mksyterkit.sh -b ${BOARD}
 
 if [ -d ${workspace}/${LINUX_CONFIG}-kernel-pkgs ];then
     echo "found kernel packages, skip build kernel."
 else
-    bash ../scripts/mklinux.sh -c ${LINUX_CONFIG} -k ${KERNEL_MENUCONFIG}
+    bash ../scripts/mklinux.sh -c ${LINUX_CONFIG} -k ${KERNEL_MENUCONFIG} -a ${ARCH} -g ${KERNEL_GCC}
 fi
 
 if [ -f ${workspace}/ubuntu-${VERSION}-${TYPE}/THIS-IS-NOT-YOUR-ROOT ];then

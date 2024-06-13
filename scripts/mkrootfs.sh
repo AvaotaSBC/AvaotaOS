@@ -1,4 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
+#
+# SPDX-License-Identifier: GPL-3.0
+#
+# This file is a part of the Avaota Build Framework
+# https://github.com/AvaotaSBC/AvaotaOS/
 
 __usage="
 Usage: mkubuntu [OPTIONS]
@@ -25,7 +30,7 @@ help()
 }
 
 default_param() {
-    ARCH=aarch64
+    ARCH=arm64
     ROOTFS=rootfs
     VERSION=jammy
     TYPE=cli
@@ -127,7 +132,7 @@ echo You are running this scipt on a ${HOST_ARCH} mechine....
     if [ -d ${ROOTFS} ];then rm -rf ${ROOTFS}; fi
     mkdir ${ROOTFS}
 
-    if [ "${ARCH}" == "aarch64" ];then
+    if [ "${ARCH}" == "arm64" ];then
         sudo debootstrap --foreign --no-check-gpg --arch=arm64 ${VERSION} ${ROOTFS} ${MIRROR}
     elif [ "${ARCH}" == "armhf" ];then
         sudo debootstrap --foreign --no-check-gpg --arch=armhf ${VERSION} ${ROOTFS} ${MIRROR}
@@ -163,23 +168,17 @@ elif [[ "${VERSION}" == "bookworm" || "${VERSION}" == "trixie" ]];then
 fi
 }
 
-HOST_ARCH=$(arch)
-
-default_param
-parseargs "$@" || help $?
-
-run_debootstrap
-prepare_apt-list
-
+setup_mount_resolv(){
 mount --bind /dev ${ROOTFS}/dev
 mount -t proc /proc ${ROOTFS}/proc
 mount -t sysfs /sys ${ROOTFS}/sys
 
 cp -b /etc/resolv.conf ${ROOTFS}/etc/resolv.conf
+}
 
-trap 'UMOUNT_ALL' EXIT
-
+install_base_packages(){
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get update
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get upgrade -y
 
 INSTALL_PACKAGES ../os/${VERSION}/base-packages.list
 
@@ -187,7 +186,9 @@ if [ "${TYPE}" != "cli" ];then
     echo "Build desktop image."
     INSTALL_PACKAGES ../os/${VERSION}/${TYPE}-packages.list
 fi
+}
 
+install_kernel_packages(){
 cp -r ${LINUX_CONFIG}-kernel-pkgs ${ROOTFS}/kernel-deb
 
 cat <<EOF | LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS}
@@ -195,7 +196,9 @@ dpkg -i /kernel-deb/*.deb
 EOF
 
 rm -rf ${ROOTFS}/kernel-deb
+}
 
+setup_users(){
 #SYS_USER=avaota
 #SYS_PASSWORD=avaota
 #ROOT_PASSWORD=avaota
@@ -225,7 +228,9 @@ EOF
 sed -i "s|#PermitRootLogin prohibit-password|PermitRootLogin yes|g" ${ROOTFS}/etc/ssh/sshd_config
 
 # Allow root ssh login
+}
 
+setup_dhcp(){
 if [[ "${VERSION}" == "jammy" || "${VERSION}" == "noble" ]];then
     LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} netplan set ethernets.eth0.dhcp4=true
     LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} netplan set ethernets.eth0.dhcp6=true
@@ -236,31 +241,33 @@ elif [[ "${VERSION}" == "bookworm" || "${VERSION}" == "trixie" ]];then
     LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get update
     LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get install ifupdown
 fi
+}
 
-if [ "${ARCH}" == "aarch64" ];then
+setup_armhf_compate(){
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} dpkg --add-architecture armhf
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get update
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get install libc6:armhf libstdc++6:armhf -y
-fi
+}
 
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get update
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get upgrade -y
-
-chroot ${ROOTFS} apt clean
-
+setup_firstrun(){
 cp ../target/services/init-resize/init-resize.sh ${ROOTFS}/usr/local/bin
 cp ../target/services/init-resize/init-resize.service ${ROOTFS}/etc/systemd/system/
 
 chmod +x ${ROOTFS}/usr/local/bin/init-resize.sh
 
 chroot ${ROOTFS} sudo systemctl enable init-resize.service
+}
 
+clean_rootfs(){
+chroot ${ROOTFS} apt clean
 if [ "$HOST_ARCH" != "$ARCH" ];then
 sudo rm ${ROOTFS}/usr/bin/qemu-${ARCH}-static
 else
 echo "You are running this script on a ${ARCH} mechine, progress...."
 fi
+}
 
+setup_hostname_fstab(){
 echo '127.0.0.1	avaota-sbc' >> ${ROOTFS}/etc/hosts
 
 cat /dev/null > ${ROOTFS}/etc/hostname
@@ -274,6 +281,31 @@ cat <<EOF >> ${ROOTFS}/etc/fstab
 LABEL=boot      /boot           vfat    defaults          0       0
 LABEL=rootfs    /               ext4    defaults,noatime  0       1
 EOF
+}
+
+HOST_ARCH=$(arch)
+
+default_param
+parseargs "$@" || help $?
+
+run_debootstrap
+prepare_apt-list
+setup_mount_resolv
+
+trap 'UMOUNT_ALL' EXIT
+
+install_base_packages
+install_kernel_packages
+setup_users
+setup_dhcp
+
+if [ "${ARCH}" == "arm64" ];then
+setup_armhf_compate
+fi
+
+setup_firstrun
+clean_rootfs
+setup_hostname_fstab
 
 UMOUNT_ALL
 

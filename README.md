@@ -21,7 +21,24 @@ UBUNTU_VERSION-SYS_TYPE-ARCH-BOARD.img.xz
 ```
 git clone --depth=1 https://github.com/AvaotaSBC/AvaotaOS && cd AvaotaOS
 
-sudo bash build_all.sh -b <BOARD> -m <MIRROR> -v <SYSTEM_DISTRO> -a <ARCH> -t <SYS_TYPE> -u <SYS_USER> -p <USER_PASSWORD> -s <ROOT_PASSWORD>
+```
+
+Just run: `./build_all.sh`
+
+
+Or, give build Parameters:
+
+```
+sudo bash build_all.sh \
+    -b <BOARD> \
+    -m <MIRROR> \
+    -v <SYSTEM_DISTRO> \
+    -t <SYS_TYPE> \
+    -u <SYS_USER> \
+    -p <USER_PASSWORD> \
+    -s <ROOT_PASSWORD> \
+    -k <IF_MENUCONFIG> \
+    -i <GITHUB_MIRROR>
 ```
 
 ## Build Parameters
@@ -44,10 +61,6 @@ such as:
 `https://mirrors.ustc.edu.cn/ubuntu-ports`
 
 `https://mirrors.ustc.edu.cn/debian`
-
-ARCH:
-1.  arm64: aarch64
-2.  armhf: armhf (current unsupported)
 
 SYS_TYPE:
 1.  cli
@@ -72,7 +85,19 @@ KERNEL_MENUCONFIG:
 1.  yes
 2.  no
 
+LOCAL:
+
+Don't fetch and update kernel,u-boot/syterkit from git sources.
+Do not set to "yes" at first run!
+
+1.  yes
+2.  no
+
+GITHUB_MIRROR:
+
+such as: `https://mirror.ghproxy.com`
+
 example: 
 
-`sudo bash build_all.sh -b avaota-a1 -m http://ports.ubuntu.com -v jammy -a aarch64 -t cli -u avaota -p avaota -s avaota -k no`
+`sudo bash build_all.sh -b avaota-a1 -m http://ports.ubuntu.com -v jammy -t cli -u avaota -p avaota -s avaota -k no -i none`
 

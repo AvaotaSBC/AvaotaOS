@@ -1,4 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
+#
+# SPDX-License-Identifier: GPL-3.0
+#
+# This file is a part of the Avaota Build Framework
+# https://github.com/AvaotaSBC/AvaotaOS/
 
 __usage="
 Usage: fetch [OPTIONS]
@@ -6,9 +11,7 @@ Fetch build sources.
 
 Options: 
   -b, --board BOARD                   The board name.
-  -v, --version UBUNTU_VER      The version of ubuntu.
-  -a, --arch ARCH               The arch of ubuntu.
-  -r, --rootfs ROOTFS_DIR             The rootfs path.
+  -g, --githubmirror GITHUB_MIRROR    Use GitHub mirror.
   -h, --help                          Show command help.
 "
 
@@ -20,9 +23,7 @@ help()
 
 default_param() {
     BOARD=avaota-a1
-    VERSION=jammy
-    ARCH=aarch64
-    ROOTFS=${workspace}/rootfs
+    GITHUB_MIRROR=none
 }
 
 parseargs()
@@ -41,16 +42,8 @@ parseargs()
             BOARD=`echo $2`
             shift
             shift
-        elif [ "x$1" == "x-v" -o "x$1" == "x--version" ]; then
-            VERSION=`echo $2`
-            shift
-            shift
-        elif [ "x$1" == "x-a" -o "x$1" == "x--arch" ]; then
-            ARCH=`echo $2`
-            shift
-            shift
-        elif [ "x$1" == "x-r" -o "x$1" == "x--rootfs" ]; then
-            ROOTFS=`echo $2`
+        elif [ "x$1" == "x-i" -o "x$1" == "x--githubmirror" ]; then
+            GITHUB_MIRROR=`echo $2`
             shift
             shift
         else
@@ -67,7 +60,7 @@ clone_linux()
         git remote -v update
         remote_url=$(git config --get remote.origin.url)
         current_branch=$(git symbolic-ref --short HEAD)
-        if [ "${remote_url}" == "${LINUX_REPO}" && "${current_branch}" == "${LINUX_BRANCH}" ];then
+        if [[ "${remote_url}" == "${LINUX_REPO}" && "${current_branch}" == "${LINUX_BRANCH}" ]];then
             git pull
         else
             rm -rf ${workspace}/linux
@@ -101,6 +94,11 @@ parseargs "$@" || help $?
 
 source ../boards/${BOARD}.conf
 source ../boot/SyterKit/SyterKit.conf
+
+if [[ ${LINUX_REPO:0:18} == "https://github.com" && ${GITHUB_MIRROR} != "none" ]];then
+    echo "Use GitHub Proxy: ${GITHUB_MIRROR}/${LINUX_REPO}"
+    LINUX_REPO=${GITHUB_MIRROR}/${LINUX_REPO}
+fi
 
 clone_syterkit
 clone_linux
