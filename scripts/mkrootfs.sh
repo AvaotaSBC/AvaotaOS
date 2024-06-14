@@ -192,6 +192,11 @@ install_kernel_packages(){
 cp -r ${LINUX_CONFIG}-kernel-pkgs ${ROOTFS}/kernel-deb
 
 cat <<EOF | LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS}
+apt-get remove linux-libc-dev -y
+apt-get remove libc6-dev -y
+apt-get remove libssl-dev -y
+apt-get remove libelf-dev -y
+apt-get remove linux-headers* -y
 dpkg -i /kernel-deb/*.deb
 EOF
 

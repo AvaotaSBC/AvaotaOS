@@ -22,6 +22,7 @@ Options:
   -s, --supassword ROOT_PASSWORD      The password of root.
   -l, --local LOCAL_SOURCES           Use local kernel,u-boot,syterkit
   -g, --githubmirror GITHUB_MIRROR    Use GitHub mirror.
+  -o, --kernelonly                    Only build kernel package.
   -h, --help                          Show command help.
 "
 
@@ -42,6 +43,7 @@ default_param() {
     MIRROR=none
     GITHUB_MIRROR=none
     LOCAL=no
+    KERNEL_ONLY=none
 }
 
 parseargs()
@@ -95,6 +97,10 @@ parseargs()
             shift
         elif [ "x$1" == "x-i" -o "x$1" == "x--githubmirror" ]; then
             GITHUB_MIRROR=`echo $2`
+            shift
+            shift
+        elif [ "x$1" == "x-o" -o "x$1" == "x--kernelonly" ]; then
+            KERNEL_ONLY=`echo $2`
             shift
             shift
         else
@@ -159,6 +165,19 @@ input_box(){
           exit 2
         fi
         KERNEL_MENUCONFIG=$(cat $temp)
+        clear
+        rm $temp
+    fi
+    if [ "${KERNEL_ONLY}" == "none" ];then
+        temp=`mktemp -t test.XXXXXX`
+        dialog --clear --shadow --backtitle "AvaotaOS Build Framework" --title "Only Build Kernel" --menu "only kernel" 15 60 2 \
+            no "Build all" \
+            yes "Only build kernel packages." \
+            2> $temp
+        if [ $? == 1 ];then
+          exit 2
+        fi
+        KERNEL_ONLY=$(cat $temp)
         clear
         rm $temp
     fi
@@ -242,7 +261,7 @@ input_box(){
 }
 
 print_args(){
-    echo "+-------[ Config Info ]-------+"
+    echo "+-------[ Config Info ]--------"
     echo "| BOARD=${BOARD}"
     echo "| VERSION=${VERSION}"
     echo "| ARCH=${ARCH}"
@@ -254,9 +273,10 @@ print_args(){
     echo "| KERNEL_MENUCONFIG=${KERNEL_MENUCONFIG}"
     echo "| LOCAL=${LOCAL}"
     echo "| GITHUB_MIRROR=${GITHUB_MIRROR}"
-    echo "+-------------------------+"
+    echo "+-------------------------------"
     echo "You can run the following command at the next time:"
     echo "sudo bash build_all.sh -b ${BOARD} -m ${MIRROR} -v ${VERSION} -t ${TYPE} -u ${SYS_USER} -p ${SYS_PASSWORD} -s ${ROOT_PASSWORD} -k ${KERNEL_MENUCONFIG} -l ${LOCAL} -i ${GITHUB_MIRROR}"
+    echo "--------------------------------"
 }
 
 sudo apt-get install gcc-arm-none-eabi cmake build-essential gcc-aarch64-linux-gnu mtools qemu-user-static bc pkg-config dialog -y
@@ -283,12 +303,17 @@ if [ ${LOCAL} == "no" ];then
 bash ../scripts/fetch.sh -b ${BOARD} -i ${GITHUB_MIRROR}
 fi
 
-bash ../scripts/mksyterkit.sh -b ${BOARD}
+bash ../scripts/mkbootloader.sh -b ${BOARD}
 
 if [ -d ${workspace}/${LINUX_CONFIG}-kernel-pkgs ];then
     echo "found kernel packages, skip build kernel."
 else
     bash ../scripts/mklinux.sh -c ${LINUX_CONFIG} -k ${KERNEL_MENUCONFIG} -a ${ARCH} -g ${KERNEL_GCC}
+fi
+
+if [ ${KERNEL_ONLY} == "yes" ];then
+    echo "Only build kernel packages."
+    exit 0
 fi
 
 if [ -f ${workspace}/ubuntu-${VERSION}-${TYPE}/THIS-IS-NOT-YOUR-ROOT ];then

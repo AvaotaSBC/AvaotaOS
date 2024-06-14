@@ -1,4 +1,4 @@
-name: AvaotaOS-build-cli
+name: AvaotaOS-build-jammy-cli
 on:
   workflow_dispatch:
   
@@ -67,7 +67,7 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          sudo bash build_all.sh -b avaota-a1 -v jammy -a aarch64 -t cli -u avaota -p avaota -s avaota
+          sudo bash build_all.sh -b avaota-a1 -v jammy -a aarch64 -t cli -u avaota -p avaota -s avaota -o no
       - name: Upload
         if: needs.prepare_release.outputs.release_id != ''
         uses: xresloader/upload-to-github-release@v1

@@ -5,20 +5,10 @@
 # This file is a part of the Avaota Build Framework
 # https://github.com/AvaotaSBC/AvaotaOS/
 
-default_param() {
-    BOARD=avaota-a1
-}
-
-workspace=$(pwd)
-cd ${workspace}
-
-default_param
+build_bootloader(){
 BOARD=$1
-
 source ../boot/SyterKit/SyterKit.conf
 source ../boards/${BOARD}.conf
-
-build_bootloader(){
 cd SyterKit && mkdir build-${BOARD} && cd build-${BOARD}
 cmake -DCMAKE_BOARD_FILE=${BOARD}.cmake -DCMAKE_BUILD_TYPE=Debug ..
 make -j$(nproc)
@@ -37,5 +27,5 @@ cp ../board/${BOARD}/${SYTERKIT_TYPE}/splash/splash.bin ${workspace}/splash.bin
 }
 
 apply_bootloader(){
-
+echo ""
 }

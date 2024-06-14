@@ -66,11 +66,17 @@ clone_linux()
             rm -rf ${workspace}/linux
             cd ${workspace}
             git clone --depth=1 ${LINUX_REPO} -b ${LINUX_BRANCH} linux
+            if [ $? == 1 ];then
+              git clone --depth=1 ${LINUX_GITEE_REPO} -b ${LINUX_BRANCH} linux
+            fi
         fi
         popd
     else
         cd ${workspace}
         git clone --depth=1 ${LINUX_REPO} -b ${LINUX_BRANCH} linux
+        if [ $? == 1 ];then
+          git clone --depth=1 ${LINUX_GITEE_REPO} -b ${LINUX_BRANCH} linux
+        fi
     fi
 }
 
@@ -102,3 +108,8 @@ fi
 
 clone_syterkit
 clone_linux
+
+if [[ ! -d ${workspace}/SyterKit && ! -d ${workspace}/linux ]];then
+    echo "Fetch sources error, please check your network connection."
+    exit 2
+fi

@@ -67,18 +67,15 @@ compile_linux()
 {
     cd ${workspace}/linux
     if [ -f ${workspace}/user_defconfig ];then
-        make ARCH=${ARCH} CROSS_COMPILE=${KERNEL_GCC} user_defconfig
+        cp ${workspace}/user_defconfig .config
+        make ARCH=${ARCH} CROSS_COMPILE=${KERNEL_GCC} olddefconfig
     else
         make ARCH=${ARCH} CROSS_COMPILE=${KERNEL_GCC} ${LINUX_CONFIG}
     fi
     
     if [ "${KERNEL_MENUCONFIG}" == "yes" ];then
         make ARCH=${ARCH} CROSS_COMPILE=${KERNEL_GCC} menuconfig
-        make ARCH=${ARCH} CROSS_COMPILE=${KERNEL_GCC} savedefconfig
-        if [ -f ${workspace}/user_defconfig ];then
-            rm ${workspace}/user_defconfig
-        fi
-        mv defconfig ${workspace}/user_defconfig
+        cat .config > ${workspace}/user_defconfig
     fi
     make ARCH=${ARCH} CROSS_COMPILE=${KERNEL_GCC} -j$(nproc)
     if [ -d ${workspace}/output/deb-data ];then
@@ -301,17 +298,20 @@ gen_package_doc(){
     IMAGE_PATH=${DEB_DATA_PATH}/image
     HEADERS_PATH=${DEB_DATA_PATH}/headers
     LIBC_DEV_PATH=${DEB_DATA_PATH}/libc-dev
-    PKG_DOC_PATH=usr/share/doc/linux-dtb-${PKG_NAME}
+    PKG_DOC_DTB_PATH=usr/share/doc/linux-dtb-${PKG_NAME}
+    PKG_DOC_IMAGE_PATH=usr/share/doc/linux-image-${PKG_NAME}
+    PKG_DOC_HEADERS_PATH=usr/share/doc/linux-headers-${PKG_NAME}
+    PKG_DOC_LIBC_DEV_PATH=usr/share/doc/linux-libc-dev-${PKG_NAME}
     
-    mkdir -p ${DTB_PATH}/${PKG_DOC_PATH}
-    mkdir -p ${IMAGE_PATH}/${PKG_DOC_PATH}
-    mkdir -p ${HEADERS_PATH}/${PKG_DOC_PATH}
-    mkdir -p ${LIBC_DEV_PATH}/${PKG_DOC_PATH}
+    mkdir -p ${DTB_PATH}/${PKG_DOC_DTB_PATH}
+    mkdir -p ${IMAGE_PATH}/${PKG_DOC_IMAGE_PATH}
+    mkdir -p ${HEADERS_PATH}/${PKG_DOC_HEADERS_PATH}
+    mkdir -p ${LIBC_DEV_PATH}/${PKG_DOC_LIBC_DEV_PATH}
 
-    gen_copyright ${DTB_PATH}/${PKG_DOC_PATH}/copyright
-    gen_copyright ${IMAGE_PATH}/${PKG_DOC_PATH}/copyright
-    gen_copyright ${HEADERS_PATH}/${PKG_DOC_PATH}/copyright
-    gen_copyright ${LIBC_DEV_PATH}/${PKG_DOC_PATH}/copyright
+    gen_copyright ${DTB_PATH}/${PKG_DOC_DTB_PATH}/copyright
+    gen_copyright ${IMAGE_PATH}/${PKG_DOC_IMAGE_PATH}/copyright
+    gen_copyright ${HEADERS_PATH}/${PKG_DOC_HEADERS_PATH}/copyright
+    gen_copyright ${LIBC_DEV_PATH}/${PKG_DOC_LIBC_DEV_PATH}/copyright
 
     gen_changelog_gz(){
         cp $2 $1
@@ -319,16 +319,16 @@ gen_package_doc(){
     }
 
     gen_changelog_gz \
-        ${DTB_PATH}/${PKG_DOC_PATH} \
+        ${DTB_PATH}/${PKG_DOC_DTB_PATH} \
         ${DTB_PATH}/DEBIAN/changelog
     gen_changelog_gz \
-        ${IMAGE_PATH}/${PKG_DOC_PATH} \
+        ${IMAGE_PATH}/${PKG_DOC_IMAGE_PATH} \
         ${IMAGE_PATH}/DEBIAN/changelog
     gen_changelog_gz \
-        ${HEADERS_PATH}/${PKG_DOC_PATH} \
+        ${HEADERS_PATH}/${PKG_DOC_HEADERS_PATH} \
         ${HEADERS_PATH}/DEBIAN/changelog
     gen_changelog_gz \
-        ${LIBC_DEV_PATH}/${PKG_DOC_PATH} \
+        ${LIBC_DEV_PATH}/${PKG_DOC_LIBC_DEV_PATH} \
         ${LIBC_DEV_PATH}/DEBIAN/changelog
 
 }

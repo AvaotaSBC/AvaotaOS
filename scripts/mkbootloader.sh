@@ -53,3 +53,8 @@ cd ${workspace}
 
 default_param
 parseargs "$@" || help $?
+
+source ../boards/${BOARD}.conf
+source ../scripts/lib/bootloader/bootloader-${BL_CONFIG}.sh
+
+build_bootloader ${BOARD}

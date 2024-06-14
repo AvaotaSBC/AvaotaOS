@@ -38,7 +38,8 @@ sudo bash build_all.sh \
     -p <USER_PASSWORD> \
     -s <ROOT_PASSWORD> \
     -k <IF_MENUCONFIG> \
-    -i <GITHUB_MIRROR>
+    -i <GITHUB_MIRROR> \
+    -o <KERNEL_ONLY>
 ```
 
 ## Build Parameters
@@ -97,7 +98,26 @@ GITHUB_MIRROR:
 
 such as: `https://mirror.ghproxy.com`
 
+KERNEL_ONLY:
+
+Only build kernel packages.
+
+1.  yes
+2.  no
+
 example: 
 
-`sudo bash build_all.sh -b avaota-a1 -m http://ports.ubuntu.com -v jammy -t cli -u avaota -p avaota -s avaota -k no -i none`
+```
+sudo bash build_all.sh \
+    -b avaota-a1 \
+    -m https://mirrors.ustc.edu.cn/ubuntu-ports \
+    -v jammy \
+    -t cli \
+    -u avaota \
+    -p avaota \
+    -s avaota \
+    -k no \
+    -i none \
+    -o no
+```
 
