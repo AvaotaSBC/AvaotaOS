@@ -56,8 +56,9 @@ sudo ./build_all.sh \
 - `SYSTEM_DISTRO`:
   1. Ubuntu-22.04: jammy
   2. Ubuntu-24.04: noble
-  3. Debian-12: bookworm
-  4. Debian-13: trixie
+  3. Debian-11: bullseye
+  4. Debian-12: bookworm
+  5. Debian-13: trixie
 
 - `MIRROR`:
   - Example: `http://ports.ubuntu.com`

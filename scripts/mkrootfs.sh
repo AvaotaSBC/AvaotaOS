@@ -164,6 +164,9 @@ elif [ "${VERSION}" == "noble" ];then
      "# Ubuntu sources have moved to /etc/apt/sources.list.d/ubuntu.sources" > ${ROOTFS}/etc/apt/sources.list
     cat ../os/${VERSION}/apt-list/ubuntu.sources > ${ROOTFS}/etc/apt/sources.list.d/ubuntu.sources
     sed -i "s|http://ports.ubuntu.com/ubuntu-ports|${MIRROR}|g" ${ROOTFS}/etc/apt/sources.list.d/ubuntu.sources
+if [ "${VERSION}" == "bullseye" ];then
+    cat ../os/${VERSION}/apt-list/sources.list > ${ROOTFS}/etc/apt/sources.list
+    sed -i "s|http://deb.debian.org|${MIRROR}|g" ${ROOTFS}/etc/apt/sources.list
 elif [[ "${VERSION}" == "bookworm" || "${VERSION}" == "trixie" ]];then
     rm ${ROOTFS}/etc/apt/sources.list
     cat ../os/${VERSION}/apt-list/debian.sources > ${ROOTFS}/etc/apt/sources.list.d/debian.sources
@@ -247,7 +250,7 @@ if [[ "${VERSION}" == "jammy" || "${VERSION}" == "noble" ]];then
     LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} netplan set ethernets.eth1.dhcp4=true
     LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} netplan set ethernets.eth1.dhcp6=true
     LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} sudo chmod 600 /etc/netplan/*.yaml
-elif [[ "${VERSION}" == "bookworm" || "${VERSION}" == "trixie" ]];then
+elif [[ "${VERSION}" == "bookworm" || "${VERSION}" == "trixie" || "${VERSION}" == "bullseye" ]];then
     LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get update
     LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get install ifupdown
 fi

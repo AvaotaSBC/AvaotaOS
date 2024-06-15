@@ -137,6 +137,7 @@ input_box(){
         dialog --clear --shadow --backtitle "AvaotaOS Build Framework" --title "System Distro" --menu "select distro" 15 60 2 \
             jammy "Ubuntu 22.04" \
             noble "Ubuntu 24.04" \
+            bullseye "Debian 11" \
             bookworm "Debian 12" \
             trixie "Debian 13" \
             2> $temp
