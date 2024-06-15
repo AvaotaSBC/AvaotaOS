@@ -134,6 +134,7 @@ echo You are running this scipt on a ${HOST_ARCH} mechine....
 
     if [ "${ARCH}" == "arm64" ];then
         sudo debootstrap --foreign --no-check-gpg --arch=arm64 ${VERSION} ${ROOTFS} ${MIRROR}
+        ARCH="aarch64"
     elif [ "${ARCH}" == "armhf" ];then
         sudo debootstrap --foreign --no-check-gpg --arch=armhf ${VERSION} ${ROOTFS} ${MIRROR}
     else
@@ -178,7 +179,6 @@ cp -b /etc/resolv.conf ${ROOTFS}/etc/resolv.conf
 
 install_base_packages(){
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get update
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get upgrade -y
 
 INSTALL_PACKAGES ../os/${VERSION}/base-packages.list
 
@@ -191,13 +191,15 @@ fi
 install_kernel_packages(){
 cp -r ${LINUX_CONFIG}-kernel-pkgs ${ROOTFS}/kernel-deb
 
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get update
+LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get upgrade -y
+
 cat <<EOF | LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS}
-apt-get remove linux-libc-dev -y
-apt-get remove libc6-dev -y
-apt-get remove libssl-dev -y
-apt-get remove libelf-dev -y
-apt-get remove linux-headers* -y
-dpkg -i /kernel-deb/*.deb
+dpkg -i /kernel-deb/linux-libc-dev*.deb
+apt-get -f install -y
+dpkg -i /kernel-deb/linux-dtb*.deb
+dpkg -i /kernel-deb/linux-image*.deb
+apt-get -f install -y
 EOF
 
 rm -rf ${ROOTFS}/kernel-deb
@@ -299,8 +301,8 @@ setup_mount_resolv
 
 trap 'UMOUNT_ALL' EXIT
 
-install_base_packages
 install_kernel_packages
+install_base_packages
 setup_users
 setup_dhcp
 

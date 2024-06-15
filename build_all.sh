@@ -273,9 +273,10 @@ print_args(){
     echo "| KERNEL_MENUCONFIG=${KERNEL_MENUCONFIG}"
     echo "| LOCAL=${LOCAL}"
     echo "| GITHUB_MIRROR=${GITHUB_MIRROR}"
+    echo "| KERNEL_ONLY=${KERNEL_ONLY}"
     echo "+-------------------------------"
     echo "You can run the following command at the next time:"
-    echo "sudo bash build_all.sh -b ${BOARD} -m ${MIRROR} -v ${VERSION} -t ${TYPE} -u ${SYS_USER} -p ${SYS_PASSWORD} -s ${ROOT_PASSWORD} -k ${KERNEL_MENUCONFIG} -l ${LOCAL} -i ${GITHUB_MIRROR}"
+    echo "sudo bash build_all.sh -b ${BOARD} -m ${MIRROR} -v ${VERSION} -t ${TYPE} -u ${SYS_USER} -p ${SYS_PASSWORD} -s ${ROOT_PASSWORD} -k ${KERNEL_MENUCONFIG} -l ${LOCAL} -i ${GITHUB_MIRROR} -o ${KERNEL_ONLY}"
     echo "--------------------------------"
 }
 
@@ -305,7 +306,8 @@ fi
 
 bash ../scripts/mkbootloader.sh -b ${BOARD}
 
-if [ -d ${workspace}/${LINUX_CONFIG}-kernel-pkgs ];then
+if [[ -f ${workspace}/${LINUX_CONFIG}-kernel-pkgs/.done && \
+    $(cat ${workspace}/${LINUX_CONFIG}-kernel-pkgs/.done) == "${LINUX_CONFIG}" ]];then
     echo "found kernel packages, skip build kernel."
 else
     bash ../scripts/mklinux.sh -c ${LINUX_CONFIG} -k ${KERNEL_MENUCONFIG} -a ${ARCH} -g ${KERNEL_GCC}

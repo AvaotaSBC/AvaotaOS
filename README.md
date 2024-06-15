@@ -1,8 +1,8 @@
-# AvaotaOS Build Framwork
+# AvaotaOS Build Framework
 
 ## Info
 
-```
+```plaintext
 username: avaota
 password: avaota
 
@@ -12,24 +12,28 @@ password: avaota
 
 ## Prebuilt Download
 
-From [releases](https://github.com/AvaotaSBC/AvaotaOS/releases)
+You can download prebuilt images from the [releases](https://github.com/AvaotaSBC/AvaotaOS/releases) section.
 
-UBUNTU_VERSION-SYS_TYPE-ARCH-BOARD.img.xz
+The format of the prebuilt image file is `UBUNTU_VERSION-SYS_TYPE-ARCH-BOARD.img.xz`.
 
-## How to build
+## How to Build
 
-```
+1. Clone the AvaotaOS repository:
+
+```plaintext
 git clone --depth=1 https://github.com/AvaotaSBC/AvaotaOS && cd AvaotaOS
-
 ```
 
-Just run: `./build_all.sh`
+2. Run the build script:
 
-
-Or, give build Parameters:
-
+```plaintext
+sudo ./build_all.sh
 ```
-sudo bash build_all.sh \
+
+Alternatively, you can provide build parameters:
+
+```plaintext
+sudo ./build_all.sh \
     -b <BOARD> \
     -m <MIRROR> \
     -v <SYSTEM_DISTRO> \
@@ -44,70 +48,53 @@ sudo bash build_all.sh \
 
 ## Build Parameters
 
-BOARD: avaota-a1
+- `BOARD`: avaota-a1
 
-SYSTEM_DISTRO:
-1.  Ubuntu-22.04: jammy
-2.  Ubuntu-24.04: noble
-3.  Debian-12: bookworm
-4.  Debian-13: trixie
+- `SYSTEM_DISTRO`:
+  1. Ubuntu-22.04: jammy
+  2. Ubuntu-24.04: noble
+  3. Debian-12: bookworm
+  4. Debian-13: trixie
 
-MIRROR:
-such as: 
+- `MIRROR`:
+  - Example: `http://ports.ubuntu.com`
+  - Example: `http://deb.debian.org/debian`
+  - Example: `https://mirrors.ustc.edu.cn/ubuntu-ports`
+  - Example: `https://mirrors.ustc.edu.cn/debian`
 
-`http://ports.ubuntu.com`
+- `SYS_TYPE`:
+  1. cli
+  2. xfce
+  3. gnome
+  4. kde
+  5. lxqt
 
-`http://deb.debian.org/debian`
+- `SYS_USER`: (default: avaota)
 
-`https://mirrors.ustc.edu.cn/ubuntu-ports`
+- `USER_PASSWORD`: (default: avaota)
 
-`https://mirrors.ustc.edu.cn/debian`
+- `ROOT_PASSWORD`: (default: avaota)
 
-SYS_TYPE:
-1.  cli
-2.  xfce
-3.  gnome
-4.  kde
-5.  lxqt
+- `KERNEL_MENUCONFIG`:
+  1. yes
+  2. no
 
-SYS_USER:
+- `LOCAL`:
+  - Don't fetch and update kernel, u-boot/syterkit from git sources.
+  - Do not set to "yes" on the first run!
+  1. yes
+  2. no
 
-default: avaota
+- `GITHUB_MIRROR`:
+  - Example: `https://mirror.ghproxy.com`
 
-USER_PASSWORD:
+- `KERNEL_ONLY`: (Only build kernel packages)
+  - 1. yes
+  - 2. no
 
-default: avaota
+Example:
 
-ROOT_PASSWORD:
-
-default: avaota
-
-KERNEL_MENUCONFIG:
-1.  yes
-2.  no
-
-LOCAL:
-
-Don't fetch and update kernel,u-boot/syterkit from git sources.
-Do not set to "yes" at first run!
-
-1.  yes
-2.  no
-
-GITHUB_MIRROR:
-
-such as: `https://mirror.ghproxy.com`
-
-KERNEL_ONLY:
-
-Only build kernel packages.
-
-1.  yes
-2.  no
-
-example: 
-
-```
+```plaintext
 sudo bash build_all.sh \
     -b avaota-a1 \
     -m https://mirrors.ustc.edu.cn/ubuntu-ports \

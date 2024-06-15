@@ -78,43 +78,43 @@ compile_linux()
         cat .config > ${workspace}/user_defconfig
     fi
     make ARCH=${ARCH} CROSS_COMPILE=${KERNEL_GCC} -j$(nproc)
-    if [ -d ${workspace}/output/deb-data ];then
-        rm -rf ${workspace}/output/deb-data
-        mkdir -p ${workspace}/output/deb-data
+    if [ -d ${workspace}/deb-data ];then
+        rm -rf ${workspace}/deb-data
+        mkdir -p ${workspace}/deb-data
     else
-        mkdir -p ${workspace}/output/deb-data
+        mkdir -p ${workspace}/deb-data
     fi
 }
 
 install_dtb(){
     cd ${workspace}/linux
-    mkdir -p ${workspace}/output/deb-data/dtb/boot
+    mkdir -p ${workspace}/deb-data/dtb/boot
     make ARCH=${ARCH} \
         CROSS_COMPILE=${KERNEL_GCC} \
         dtbs_install \
-        INSTALL_PATH=${workspace}/output/deb-data/dtb/boot
-    KERNEL_VER=$(ls ${workspace}/output/deb-data/dtb/boot/dtbs/)
-    mv ${workspace}/output/deb-data/dtb/boot/dtbs/* \
-        ${workspace}/output/deb-data/dtb/boot/dtb-${KERNEL_VER}
-    rm -rf ${workspace}/output/deb-data/dtb/boot/dtbs
+        INSTALL_PATH=${workspace}/deb-data/dtb/boot
+    KERNEL_VER=$(ls ${workspace}/deb-data/dtb/boot/dtbs/)
+    mv ${workspace}/deb-data/dtb/boot/dtbs/* \
+        ${workspace}/deb-data/dtb/boot/dtb-${KERNEL_VER}
+    rm -rf ${workspace}/deb-data/dtb/boot/dtbs
 }
 
 install_image_modules(){
     cd ${workspace}/linux
-    mkdir -p ${workspace}/output/deb-data/image/boot
-    mkdir -p ${workspace}/output/deb-data/image/etc/kernel/postinst.d
-    mkdir -p ${workspace}/output/deb-data/image/etc/kernel/postrm.d
-    mkdir -p ${workspace}/output/deb-data/image/etc/kernel/preinst.d
-    mkdir -p ${workspace}/output/deb-data/image/etc/kernel/prerm.d
+    mkdir -p ${workspace}/deb-data/image/boot
+    mkdir -p ${workspace}/deb-data/image/etc/kernel/postinst.d
+    mkdir -p ${workspace}/deb-data/image/etc/kernel/postrm.d
+    mkdir -p ${workspace}/deb-data/image/etc/kernel/preinst.d
+    mkdir -p ${workspace}/deb-data/image/etc/kernel/prerm.d
     
     make ARCH=${ARCH} \
         CROSS_COMPILE=${KERNEL_GCC} \
         modules_install \
-        INSTALL_MOD_PATH=${workspace}/output/deb-data/image
+        INSTALL_MOD_PATH=${workspace}/deb-data/image
     make ARCH=${ARCH} \
         CROSS_COMPILE=${KERNEL_GCC} \
         install \
-        INSTALL_PATH=${workspace}/output/deb-data/image/boot
+        INSTALL_PATH=${workspace}/deb-data/image/boot
 }
 
 install_headers(){
@@ -145,11 +145,11 @@ install_headers(){
     ) > "${temp_file_list}"
 
     cd ${workspace}/linux
-    KERNEL_VER=$(ls ${workspace}/output/deb-data/image/lib/modules/)
-    hdr_path=${workspace}/output/deb-data/headers/usr/src/linux-headers-${KERNEL_VER}
+    KERNEL_VER=$(ls ${workspace}/deb-data/image/lib/modules/)
+    hdr_path=${workspace}/deb-data/headers/usr/src/linux-headers-${KERNEL_VER}
     mkdir -p ${hdr_path}
-    mkdir -p ${workspace}/output/deb-data/headers/lib/modules/${KERNEL_VER}
-    ln -s ${hdr_path} ${workspace}/output/deb-data/headers/lib/modules/${KERNEL_VER}/build
+    mkdir -p ${workspace}/deb-data/headers/lib/modules/${KERNEL_VER}
+    ln -s "/usr/src/linux-headers-${KERNEL_VER}" "/lib/modules/${KERNEL_VER}/build"
     echo "Gen kernel headers, please wait..."
 
     set -e
@@ -173,16 +173,16 @@ install_headers(){
 
 install_libc-dev(){
     cd ${workspace}/linux
-    mkdir -p ${workspace}/output/deb-data/libc-dev/usr
+    mkdir -p ${workspace}/deb-data/libc-dev/usr
     make ARCH=${ARCH} \
         CROSS_COMPILE=${KERNEL_GCC} \
         headers_install \
-        INSTALL_HDR_PATH=${workspace}/output/deb-data/libc-dev/usr
+        INSTALL_HDR_PATH=${workspace}/deb-data/libc-dev/usr
 }
 
 gen_debian_file(){
-    KERNEL_VER=$(ls ${workspace}/output/deb-data/image/lib/modules/)
-    DEB_DATA_PATH=${workspace}/output/deb-data
+    KERNEL_VER=$(ls ${workspace}/deb-data/image/lib/modules/)
+    DEB_DATA_PATH=${workspace}/deb-data
 
     DTB_PATH=${DEB_DATA_PATH}/dtb
     mkdir -p ${DTB_PATH}/DEBIAN
@@ -293,7 +293,7 @@ gen_debian_file(){
 }
 
 gen_package_doc(){
-    DEB_DATA_PATH=${workspace}/output/deb-data
+    DEB_DATA_PATH=${workspace}/deb-data
     DTB_PATH=${DEB_DATA_PATH}/dtb
     IMAGE_PATH=${DEB_DATA_PATH}/image
     HEADERS_PATH=${DEB_DATA_PATH}/headers
@@ -335,7 +335,7 @@ gen_package_doc(){
 
 pack_kernel_packages(){
     echo "packing kernel packages..."
-    DEB_DATA_PATH=${workspace}/output/deb-data
+    DEB_DATA_PATH=${workspace}/deb-data
     DTB_PATH=${DEB_DATA_PATH}/dtb
     IMAGE_PATH=${DEB_DATA_PATH}/image
     HEADERS_PATH=${DEB_DATA_PATH}/headers
@@ -372,7 +372,7 @@ parseargs "$@" || help $?
 AVA_VERSION=$(cat ../VERSION)
 kconfig_name=${LINUX_CONFIG:0:-10}
 PKG_NAME=${kconfig_name//_/-}
-PACKAGES_OUTPUT_PATH=${workspace}/output/packages
+PACKAGES_OUTPUT_PATH=${workspace}/${LINUX_CONFIG}-kernel-pkgs
 
 source ../scripts/lib/packages/kernel-deb.sh
 
@@ -386,5 +386,4 @@ gen_debian_file
 gen_package_doc
 pack_kernel_packages
 
-mkdir ${workspace}/${LINUX_CONFIG}-kernel-pkgs
-cp ${PACKAGES_OUTPUT_PATH}/* ${workspace}/${LINUX_CONFIG}-kernel-pkgs
+echo "${LINUX_CONFIG}" > ${workspace}/${LINUX_CONFIG}-kernel-pkgs/.done
