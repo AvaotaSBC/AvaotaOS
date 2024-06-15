@@ -74,6 +74,81 @@ sed -i "s|LINUX_VERSION|${5}|g" ${1}
 sed -i "s|INS_SIZE|${6}|g" ${1}
 }
 
+# gen_headers_control <file> <AVA_VERSION> <sun55i-t527-bsp> <arm64> <5.15.153> <SIZE>
+gen_headers_control(){
+cat <<- CONTROL > "$1"
+Version: AVA_VERSION
+Maintainer: AvaotaOS <info@avaotaos.local>
+Section: devel
+Package: linux-headers-BOARD
+Architecture: ARCH
+Priority: optional
+Provides: linux-headers, linux-headers-avaotaos
+Depends: make, gcc, libc6-dev, bison, flex, libssl-dev, libelf-dev
+Description: AvaotaOS legacy headers LINUX_VERSION
+ This package provides kernel header files for LINUX_VERSION
+ .
+ This is useful for DKMS and building of external modules.
+Installed-Size: 68130
+CONTROL
+
+sed -i "s|AVA_VERSION|${2}|g" ${1}
+sed -i "s|BOARD|${3}|g" ${1}
+sed -i "s|ARCH|${4}|g" ${1}
+sed -i "s|LINUX_VERSION|${5}|g" ${1}
+sed -i "s|INS_SIZE|${6}|g" ${1}
+}
+
+# gen_image_control <file> <AVA_VERSION> <sun55i-t527-bsp> <arm64> <5.15.153> <SIZE>
+gen_image_control(){
+cat <<- CONTROL > "$1"
+Package: linux-image-BOARD
+Version: AVA_VERSION
+Source: linux-LINUX_VERSION
+AvaotaOS-Kernel-Version: LINUX_VERSION
+AvaotaOS-Kernel-Version-Family: LINUX_VERSION
+Architecture: ARCH
+Maintainer: AvaotaOS <info@avaotaos.local>
+Section: kernel
+Priority: optional
+Provides: linux-image, linux-image-avaotaos
+Description: AvaotaOS kernel image LINUX_VERSION
+ This package contains the Linux kernel, modules and corresponding other files.
+Installed-Size: INS_SIZE
+CONTROL
+
+sed -i "s|AVA_VERSION|${2}|g" ${1}
+sed -i "s|BOARD|${3}|g" ${1}
+sed -i "s|ARCH|${4}|g" ${1}
+sed -i "s|LINUX_VERSION|${5}|g" ${1}
+sed -i "s|INS_SIZE|${6}|g" ${1}
+}
+
+# gen_libc-dev_control <file> <AVA_VERSION> <sun55i-t527-bsp> <arm64> <5.15.153> <SIZE>
+gen_libc-dev_control(){
+cat <<- CONTROL > "$1"
+Version: AVA_VERSION
+Maintainer: AvaotaOS <info@avaotaos.local>
+Package: linux-libc-dev-BOARD
+Section: devel
+Priority: optional
+Provides: linux-libc-dev
+Conflicts: linux-libc-dev
+Architecture: ARCH
+Description: AvaotaOS support headers for userspace development
+ This package provides userspaces headers from the Linux kernel.  These headers
+ are used by the installed headers for GNU glibc and other system libraries.
+Multi-Arch: same
+Installed-Size: INS_SIZE
+CONTROL
+
+sed -i "s|AVA_VERSION|${2}|g" ${1}
+sed -i "s|BOARD|${3}|g" ${1}
+sed -i "s|ARCH|${4}|g" ${1}
+sed -i "s|LINUX_VERSION|${5}|g" ${1}
+sed -i "s|INS_SIZE|${6}|g" ${1}
+}
+
 # gen_dtb_postinst <file> <sun55i-t527-bsp> <5.15.153>
 gen_dtb_postinst(){
 cat <<- POSTINST > "$1"
@@ -120,31 +195,6 @@ sed -i "s|LINUX_VERSION|${3}|g" ${1}
 chmod +x "$1"
 }
 
-# gen_headers_control <file> <AVA_VERSION> <sun55i-t527-bsp> <arm64> <5.15.153> <SIZE>
-gen_headers_control(){
-cat <<- CONTROL > "$1"
-Version: AVA_VERSION
-Maintainer: AvaotaOS <info@avaotaos.local>
-Section: devel
-Package: linux-headers-BOARD
-Architecture: ARCH
-Priority: optional
-Provides: linux-headers, linux-headers-avaotaos
-Depends: make, gcc, libc6-dev, bison, flex, libssl-dev, libelf-dev
-Description: AvaotaOS legacy headers LINUX_VERSION
- This package provides kernel header files for LINUX_VERSION
- .
- This is useful for DKMS and building of external modules.
-Installed-Size: 68130
-CONTROL
-
-sed -i "s|AVA_VERSION|${2}|g" ${1}
-sed -i "s|BOARD|${3}|g" ${1}
-sed -i "s|ARCH|${4}|g" ${1}
-sed -i "s|LINUX_VERSION|${5}|g" ${1}
-sed -i "s|INS_SIZE|${6}|g" ${1}
-}
-
 # gen_headers_postinst <file> <sun55i-t527-bsp> <arm64> <5.15.153>
 gen_headers_postinst(){
 cat <<- POSTINST > "$1"
@@ -153,7 +203,7 @@ echo "AvaotaOS 'linux-headers-BOARD' for 'LINUX_VERSION': 'postinst' starting."
 set -e # Error control
 
 #set -x # Debugging
-
+ln -s "/usr/src/linux-headers-LINUX_VERSION" "/lib/modules/LINUX_VERSION/build"
 cd "/usr/src/linux-headers-LINUX_VERSION"
 NCPU=\$(grep -c 'processor' /proc/cpuinfo)
 echo "Compiling kernel-headers tools (LINUX_VERSION) using \$NCPU CPUs - please wait ..."
@@ -221,31 +271,6 @@ PRERM
 sed -i "s|BOARD|${2}|g" ${1}
 sed -i "s|LINUX_VERSION|${3}|g" ${1}
 chmod +x "$1"
-}
-
-# gen_image_control <file> <AVA_VERSION> <sun55i-t527-bsp> <arm64> <5.15.153> <SIZE>
-gen_image_control(){
-cat <<- CONTROL > "$1"
-Package: linux-image-BOARD
-Version: AVA_VERSION
-Source: linux-LINUX_VERSION
-AvaotaOS-Kernel-Version: LINUX_VERSION
-AvaotaOS-Kernel-Version-Family: LINUX_VERSION
-Architecture: ARCH
-Maintainer: AvaotaOS <info@avaotaos.local>
-Section: kernel
-Priority: optional
-Provides: linux-image, linux-image-avaotaos
-Description: AvaotaOS kernel image LINUX_VERSION
- This package contains the Linux kernel, modules and corresponding other files.
-Installed-Size: INS_SIZE
-CONTROL
-
-sed -i "s|AVA_VERSION|${2}|g" ${1}
-sed -i "s|BOARD|${3}|g" ${1}
-sed -i "s|ARCH|${4}|g" ${1}
-sed -i "s|LINUX_VERSION|${5}|g" ${1}
-sed -i "s|INS_SIZE|${6}|g" ${1}
 }
 
 # gen_image_postinst <file> <sun55i-t527-bsp> <5.15.153>
@@ -348,29 +373,4 @@ PRERM
 sed -i "s|BOARD|${2}|g" ${1}
 sed -i "s|LINUX_VERSION|${3}|g" ${1}
 chmod +x "$1"
-}
-
-# gen_libc-dev_control <file> <AVA_VERSION> <sun55i-t527-bsp> <arm64> <5.15.153> <SIZE>
-gen_libc-dev_control(){
-cat <<- CONTROL > "$1"
-Version: AVA_VERSION
-Maintainer: AvaotaOS <info@avaotaos.local>
-Package: linux-libc-dev-BOARD
-Section: devel
-Priority: optional
-Provides: linux-libc-dev
-Conflicts: linux-libc-dev
-Architecture: ARCH
-Description: AvaotaOS support headers for userspace development
- This package provides userspaces headers from the Linux kernel.  These headers
- are used by the installed headers for GNU glibc and other system libraries.
-Multi-Arch: same
-Installed-Size: INS_SIZE
-CONTROL
-
-sed -i "s|AVA_VERSION|${2}|g" ${1}
-sed -i "s|BOARD|${3}|g" ${1}
-sed -i "s|ARCH|${4}|g" ${1}
-sed -i "s|LINUX_VERSION|${5}|g" ${1}
-sed -i "s|INS_SIZE|${6}|g" ${1}
 }

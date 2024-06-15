@@ -23,7 +23,7 @@ jobs:
           tag_name: ${{ steps.time.outputs.time }}
           body_path: VERSION
           token: ${{ secrets.GITHUB_TOKEN }}
-          target_commitish: ubuntu
+          target_commitish: main
           draft: false
     outputs:
       release_id: ${{ steps.release.outputs.id }}
@@ -67,7 +67,7 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          sudo bash build_all.sh -b avaota-a1 -m http://deb.debian.org/debian -v bookworm -a aarch64 -t cli -u avaota -p avaota -s avaota -k no -o no
+          sudo bash build_all.sh -b avaota-a1 -v bookworm -t cli -u avaota -p avaota -s avaota -k no -i no -o no -e no
       - name: Upload
         if: needs.prepare_release.outputs.release_id != ''
         uses: xresloader/upload-to-github-release@v1

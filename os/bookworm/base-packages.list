@@ -52,7 +52,6 @@ usbutils
 vlan
 wget
 wireless-tools
-wireguard-tools
 wpasupplicant
 apt-file
 apt-utils

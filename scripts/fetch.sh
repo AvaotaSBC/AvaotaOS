@@ -82,14 +82,19 @@ clone_linux()
 
 clone_syterkit()
 {
-    if [ -d ${workspace}/SyterKit ];then
-    	pushd ${workspace}/SyterKit
+    if [ -d ${workspace}/${BL_TYPE} ];then
+    	pushd ${workspace}/${BL_TYPE}
         rm -rf build-${BOARD}
         git pull
         popd
     else
-        git clone --depth=1 ${SYTERKIT_REPO} -b ${SYTERKIT_BRANCH} SyterKit
+        git clone --depth=1 ${SYTERKIT_REPO} -b ${SYTERKIT_BRANCH} ${BL_TYPE}
     fi
+}
+
+clone_u-boot()
+{
+    echo "TODO"
 }
 
 workspace=$(pwd)
@@ -99,17 +104,23 @@ default_param
 parseargs "$@" || help $?
 
 source ../boards/${BOARD}.conf
-source ../boot/SyterKit/SyterKit.conf
+source ../scripts/lib/bootloader/bootloader-${BL_CONFIG}.sh
+source ${BL_CONF_PATH}
 
-if [[ ${LINUX_REPO:0:18} == "https://github.com" && ${GITHUB_MIRROR} != "none" ]];then
+if [[ ${LINUX_REPO:0:18} == "https://github.com" && ${GITHUB_MIRROR} != "no" ]];then
     echo "Use GitHub Proxy: ${GITHUB_MIRROR}/${LINUX_REPO}"
     LINUX_REPO=${GITHUB_MIRROR}/${LINUX_REPO}
 fi
 
-clone_syterkit
+if [ ${BL_TYPE} == "syterkit" ];then
+    clone_syterkit
+elif [ ${BL_TYPE} == "u-boot" ];then
+    clone_u-boot
+fi
+
 clone_linux
 
-if [[ ! -d ${workspace}/SyterKit && ! -d ${workspace}/linux ]];then
+if [[ ! -d ${workspace}/${BL_TYPE} && ! -d ${workspace}/linux ]];then
     echo "Fetch sources error, please check your network connection."
     exit 2
 fi

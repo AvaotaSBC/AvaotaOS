@@ -14,6 +14,7 @@ Options:
   -c, --config CONFIG                 The linux configure file.
   -k, --kernelmenuconfig              If run kernel menuconfig.
   -a, --arch                          Target arch.
+  -e, --ccache                        If use ccache.
   -h, --help                          Show command help.
 "
 
@@ -26,6 +27,7 @@ help()
 default_param() {
     KERNEL_MENUCONFIG=no
     ARCH=arm64
+    USE_CCACHE=no
 }
 
 parseargs()
@@ -56,6 +58,10 @@ parseargs()
             KERNEL_GCC=`echo $2`
             shift
             shift
+        elif [ "x$1" == "x-e" -o "x$1" == "x--ccache" ]; then
+            USE_CCACHE=`echo $2`
+            shift
+            shift
         else
             echo `date` - ERROR, UNKNOWN params "$@"
             return 2
@@ -65,19 +71,23 @@ parseargs()
 
 compile_linux()
 {
+    if [ ! -d ${workspace}/linux ];then
+        echo "The linux source path not exist, exit..."
+        exit 2
+    fi
     cd ${workspace}/linux
     if [ -f ${workspace}/user_defconfig ];then
         cp ${workspace}/user_defconfig .config
-        make ARCH=${ARCH} CROSS_COMPILE=${KERNEL_GCC} olddefconfig
+        ${MAKE} ARCH=${ARCH} CROSS_COMPILE=${KERNEL_GCC} olddefconfig
     else
-        make ARCH=${ARCH} CROSS_COMPILE=${KERNEL_GCC} ${LINUX_CONFIG}
+        ${MAKE} ARCH=${ARCH} CROSS_COMPILE=${KERNEL_GCC} ${LINUX_CONFIG}
     fi
     
     if [ "${KERNEL_MENUCONFIG}" == "yes" ];then
-        make ARCH=${ARCH} CROSS_COMPILE=${KERNEL_GCC} menuconfig
+        ${MAKE} ARCH=${ARCH} CROSS_COMPILE=${KERNEL_GCC} menuconfig
         cat .config > ${workspace}/user_defconfig
     fi
-    make ARCH=${ARCH} CROSS_COMPILE=${KERNEL_GCC} -j$(nproc)
+    ${MAKE} ARCH=${ARCH} CROSS_COMPILE=${KERNEL_GCC} -j$(nproc)
     if [ -d ${workspace}/deb-data ];then
         rm -rf ${workspace}/deb-data
         mkdir -p ${workspace}/deb-data
@@ -89,7 +99,7 @@ compile_linux()
 install_dtb(){
     cd ${workspace}/linux
     mkdir -p ${workspace}/deb-data/dtb/boot
-    make ARCH=${ARCH} \
+    ${MAKE} ARCH=${ARCH} \
         CROSS_COMPILE=${KERNEL_GCC} \
         dtbs_install \
         INSTALL_PATH=${workspace}/deb-data/dtb/boot
@@ -107,11 +117,11 @@ install_image_modules(){
     mkdir -p ${workspace}/deb-data/image/etc/kernel/preinst.d
     mkdir -p ${workspace}/deb-data/image/etc/kernel/prerm.d
     
-    make ARCH=${ARCH} \
+    ${MAKE} ARCH=${ARCH} \
         CROSS_COMPILE=${KERNEL_GCC} \
         modules_install \
         INSTALL_MOD_PATH=${workspace}/deb-data/image
-    make ARCH=${ARCH} \
+    ${MAKE} ARCH=${ARCH} \
         CROSS_COMPILE=${KERNEL_GCC} \
         install \
         INSTALL_PATH=${workspace}/deb-data/image/boot
@@ -149,7 +159,6 @@ install_headers(){
     hdr_path=${workspace}/deb-data/headers/usr/src/linux-headers-${KERNEL_VER}
     mkdir -p ${hdr_path}
     mkdir -p ${workspace}/deb-data/headers/lib/modules/${KERNEL_VER}
-    ln -s "/usr/src/linux-headers-${KERNEL_VER}" "/lib/modules/${KERNEL_VER}/build"
     echo "Gen kernel headers, please wait..."
 
     set -e
@@ -174,7 +183,7 @@ install_headers(){
 install_libc-dev(){
     cd ${workspace}/linux
     mkdir -p ${workspace}/deb-data/libc-dev/usr
-    make ARCH=${ARCH} \
+    ${MAKE} ARCH=${ARCH} \
         CROSS_COMPILE=${KERNEL_GCC} \
         headers_install \
         INSTALL_HDR_PATH=${workspace}/deb-data/libc-dev/usr
@@ -373,6 +382,11 @@ AVA_VERSION=$(cat ../VERSION)
 kconfig_name=${LINUX_CONFIG:0:-10}
 PKG_NAME=${kconfig_name//_/-}
 PACKAGES_OUTPUT_PATH=${workspace}/${LINUX_CONFIG}-kernel-pkgs
+
+MAKE="make"
+if [ ${USE_CCACHE} == "yes" ];then
+    MAKE="ccache ${MAKE}"
+fi
 
 source ../scripts/lib/packages/kernel-deb.sh
 

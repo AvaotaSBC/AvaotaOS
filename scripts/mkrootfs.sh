@@ -118,7 +118,7 @@ INSTALL_PACKAGES(){
     do
         LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get install -y ${item}
         if [ $? == 0 ]; then
-            echo "install $item."
+            echo "installed $item."
         else
             echo "can not install $item."
         fi
@@ -134,8 +134,7 @@ echo You are running this scipt on a ${HOST_ARCH} mechine....
 
     if [ "${ARCH}" == "arm64" ];then
         sudo debootstrap --foreign --no-check-gpg --arch=arm64 ${VERSION} ${ROOTFS} ${MIRROR}
-        ARCH="aarch64"
-    elif [ "${ARCH}" == "armhf" ];then
+    elif [ "${ARCH}" == "arm" ];then
         sudo debootstrap --foreign --no-check-gpg --arch=armhf ${VERSION} ${ROOTFS} ${MIRROR}
     else
         echo "unsupported arch."
@@ -143,7 +142,11 @@ echo You are running this scipt on a ${HOST_ARCH} mechine....
     fi
 
     if [ "${HOST_ARCH}" != "${ARCH}" ];then
-        sudo cp /usr/bin/qemu-${ARCH}-static ${ROOTFS}/usr/bin
+        if [ ${ARCH} == "arm64" ];then
+            sudo cp /usr/bin/qemu-aarch64-static ${ROOTFS}/usr/bin
+        elif [ ${ARCH} == "arm" ];then
+            sudo cp /usr/bin/qemu-arm-static ${ROOTFS}/usr/bin
+        fi
     else
         echo "You are running this script on a ${ARCH} mechine, progress...."
     fi
@@ -268,7 +271,11 @@ chroot ${ROOTFS} sudo systemctl enable init-resize.service
 clean_rootfs(){
 chroot ${ROOTFS} apt clean
 if [ "$HOST_ARCH" != "$ARCH" ];then
-sudo rm ${ROOTFS}/usr/bin/qemu-${ARCH}-static
+    if [ ${ARCH} == "arm64" ];then
+        sudo rm ${ROOTFS}/usr/bin/qemu-aarch64-static
+    elif [ ${ARCH} == "arm" ];then
+        sudo rm ${ROOTFS}/usr/bin/qemu-arm-static
+    fi
 else
 echo "You are running this script on a ${ARCH} mechine, progress...."
 fi

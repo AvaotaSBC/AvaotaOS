@@ -23,6 +23,7 @@ Options:
   -l, --local LOCAL_SOURCES           Use local kernel,u-boot,syterkit
   -g, --githubmirror GITHUB_MIRROR    Use GitHub mirror.
   -o, --kernelonly                    Only build kernel package.
+  -e, --ccache                        If use ccache.
   -h, --help                          Show command help.
 "
 
@@ -44,6 +45,7 @@ default_param() {
     GITHUB_MIRROR=none
     LOCAL=no
     KERNEL_ONLY=none
+    USE_CCACHE=no
 }
 
 parseargs()
@@ -103,6 +105,10 @@ parseargs()
             KERNEL_ONLY=`echo $2`
             shift
             shift
+        elif [ "x$1" == "x-e" -o "x$1" == "x--ccache" ]; then
+            USE_CCACHE=`echo $2`
+            shift
+            shift
         else
             echo `date` - ERROR, UNKNOWN params "$@"
             return 2
@@ -124,6 +130,8 @@ input_box(){
         clear
         rm $temp
     fi
+    source boards/${BOARD}.conf
+    
     if [ "${VERSION}" == "none" ];then
         temp=`mktemp -t test.XXXXXX`
         dialog --clear --shadow --backtitle "AvaotaOS Build Framework" --title "System Distro" --menu "select distro" 15 60 2 \
@@ -139,6 +147,7 @@ input_box(){
         clear
         rm $temp
     fi
+    
     if [ "${TYPE}" == "none" ];then
         temp=`mktemp -t test.XXXXXX`
         dialog --clear --shadow --backtitle "AvaotaOS Build Framework" --title "System Type" --menu "select desktop" 15 60 2 \
@@ -155,6 +164,7 @@ input_box(){
         clear
         rm $temp
     fi
+    
     if [ "${KERNEL_MENUCONFIG}" == "none" ];then
         temp=`mktemp -t test.XXXXXX`
         dialog --clear --shadow --backtitle "AvaotaOS Build Framework" --title "Kernel Configure" --menu "select configure" 15 60 2 \
@@ -168,6 +178,7 @@ input_box(){
         clear
         rm $temp
     fi
+    
     if [ "${KERNEL_ONLY}" == "none" ];then
         temp=`mktemp -t test.XXXXXX`
         dialog --clear --shadow --backtitle "AvaotaOS Build Framework" --title "Only Build Kernel" --menu "only kernel" 15 60 2 \
@@ -181,6 +192,7 @@ input_box(){
         clear
         rm $temp
     fi
+    
     if [ "${MIRROR}" == "none" ];then
         if [[ "${VERSION}" == "jammy" || "${VERSION}" == "noble" ]];then
             MIRROR=http://ports.ubuntu.com
@@ -188,6 +200,7 @@ input_box(){
             MIRROR=http://deb.debian.org/debian
         fi
     fi
+    
     if [ "${EXTRA_ARGS}" == "yes" ];then
         temp=`mktemp -t test.XXXXXX`
         dialog --clear --shadow --backtitle "AvaotaOS Build Framework" \
@@ -251,7 +264,7 @@ input_box(){
             GITHUB_MIRROR=$(cat $in_temp)
             rm $in_temp
         elif [ ${IF_GITHUB_MIRROR} == "no" ];then
-            GITHUB_MIRROR="none"
+            GITHUB_MIRROR="no"
         fi
         clear
         rm $temp
@@ -274,9 +287,10 @@ print_args(){
     echo "| LOCAL=${LOCAL}"
     echo "| GITHUB_MIRROR=${GITHUB_MIRROR}"
     echo "| KERNEL_ONLY=${KERNEL_ONLY}"
+    echo "| USE_CCACHE=${USE_CCACHE}"
     echo "+-------------------------------"
     echo "You can run the following command at the next time:"
-    echo "sudo bash build_all.sh -b ${BOARD} -m ${MIRROR} -v ${VERSION} -t ${TYPE} -u ${SYS_USER} -p ${SYS_PASSWORD} -s ${ROOT_PASSWORD} -k ${KERNEL_MENUCONFIG} -l ${LOCAL} -i ${GITHUB_MIRROR} -o ${KERNEL_ONLY}"
+    echo "sudo bash build_all.sh -b ${BOARD} -m ${MIRROR} -v ${VERSION} -t ${TYPE} -u ${SYS_USER} -p ${SYS_PASSWORD} -s ${ROOT_PASSWORD} -k ${KERNEL_MENUCONFIG} -l ${LOCAL} -i ${GITHUB_MIRROR} -o ${KERNEL_ONLY} -e ${USE_CCACHE}"
     echo "--------------------------------"
 }
 
@@ -304,13 +318,18 @@ if [ ${LOCAL} == "no" ];then
 bash ../scripts/fetch.sh -b ${BOARD} -i ${GITHUB_MIRROR}
 fi
 
-bash ../scripts/mkbootloader.sh -b ${BOARD}
+if [[ -f ${workspace}/bootloader-${BOARD}/.done && \
+    $(cat ${workspace}/bootloader-${BOARD}/.done) == "${BOARD}" ]];then
+    echo "found bootloader file, skip build bootloader."
+else
+    bash ../scripts/mkbootloader.sh -b ${BOARD}
+fi
 
 if [[ -f ${workspace}/${LINUX_CONFIG}-kernel-pkgs/.done && \
     $(cat ${workspace}/${LINUX_CONFIG}-kernel-pkgs/.done) == "${LINUX_CONFIG}" ]];then
     echo "found kernel packages, skip build kernel."
 else
-    bash ../scripts/mklinux.sh -c ${LINUX_CONFIG} -k ${KERNEL_MENUCONFIG} -a ${ARCH} -g ${KERNEL_GCC}
+    bash ../scripts/mklinux.sh -c ${LINUX_CONFIG} -k ${KERNEL_MENUCONFIG} -a ${ARCH} -g ${KERNEL_GCC} -e ${USE_CCACHE}
 fi
 
 if [ ${KERNEL_ONLY} == "yes" ];then

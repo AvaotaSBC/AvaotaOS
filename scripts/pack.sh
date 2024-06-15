@@ -11,6 +11,7 @@ Pack bootable image.
 The target sdcard.img will be generated in the build folder of the directory where the mklinux.sh script is located.
 
 Options: 
+  -b,  -board BOARD                   The target board.
   -t, --type ROOTFS_TYPE              The rootfs type.
   -h, --help                          Show command help.
 "
@@ -24,6 +25,7 @@ help()
 default_param() {
     TYPE=cli
     VERSION=jammy
+    BOARD=avaota-a1
 }
 
 parseargs()
@@ -37,6 +39,10 @@ parseargs()
         if [ "x$1" == "x-h" -o "x$1" == "x--help" ]; then
             return 1
         elif [ "x$1" == "x" ]; then
+            shift
+        elif [ "x$1" == "x-b" -o "x$1" == "x--board" ]; then
+            BOARD=`echo $2`
+            shift
             shift
         elif [ "x$1" == "x-t" -o "x$1" == "x--type" ]; then
             TYPE=`echo $2`
@@ -106,13 +112,8 @@ pack_boot()
     mount ${workspace}/boot.vfat ${workspace}/boot_dir
     
     mv ${workspace}/ubuntu-${VERSION}-${TYPE}/boot/* ${workspace}/boot_dir
-    mkdir ${workspace}/boot_dir/extlinux
-    cp ${workspace}/extlinux.conf ${workspace}/boot_dir/extlinux
     
-    cp ${workspace}/bl31.bin ${workspace}/boot_dir
-    cp ${workspace}/scp.bin ${workspace}/boot_dir
-    cp ${workspace}/splash.bin ${workspace}/boot_dir
-    cp ${workspace}/../boot/SyterKit/uInitrd ${workspace}/boot_dir
+    cp -r ${workspace}/bootloader-${BOARD}/* ${workspace}/boot_dir
     
     UMOUNT_ALL
 }
@@ -137,6 +138,9 @@ pack_rootfs()
     rsync -avHAXq ${workspace}/ubuntu-${VERSION}-${TYPE}/* ${workspace}/rootfs_dir
     
     rm ${workspace}/rootfs_dir/THIS-IS-NOT-YOUR-ROOT
+    rm -f ${workspace}/rootfs_dir/root/.bash_history
+    sed -i "s|avaota-sbc|${BOARD_NAME}|g" ${workspace}/rootfs_dir/etc/hosts
+    sed -i "s|avaota-sbc|${BOARD_NAME}|g" ${workspace}/rootfs_dir/etc/hostname
     
     cp -rfp ${workspace}/../target/firmware ${workspace}/rootfs_dir/lib/
     
@@ -171,6 +175,9 @@ cd ${workspace}
 
 default_param
 parseargs "$@" || help $?
+
+source ../boards/${BOARD}.conf
+source ../scripts/lib/bootloader/bootloader-${BL_CONFIG}.sh
 
 compile_genimage
 pack_boot

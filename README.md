@@ -45,7 +45,8 @@ sudo ./build_all.sh \
     -s <ROOT_PASSWORD> \
     -k <IF_MENUCONFIG> \
     -i <GITHUB_MIRROR> \
-    -o <KERNEL_ONLY>
+    -o <KERNEL_ONLY> \
+    -e <USE_CCACHE>
 ```
 
 ## Build Parameters
@@ -93,6 +94,10 @@ sudo ./build_all.sh \
 - `KERNEL_ONLY`: (Only build kernel packages)
   - 1. yes
   - 2. no
+  
+- `USE_CCACHE`:
+  - 1. yes
+  - 2. no
 
 Example:
 
@@ -106,7 +111,8 @@ sudo bash build_all.sh \
     -p avaota \
     -s avaota \
     -k no \
-    -i none \
-    -o no
+    -i no \
+    -o no \
+    -e no
 ```
 
