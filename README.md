@@ -1,5 +1,7 @@
 # AvaotaOS Build Framework
 
+<a href="#avaota-build"><img src="./doc/pics/main.png" alt="main.png" width="100%"></a>
+
 ## Info
 
 ```plaintext
