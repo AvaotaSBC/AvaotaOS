@@ -121,7 +121,7 @@ input_box(){
         temp=`mktemp -t test.XXXXXX`
         dialog --clear --shadow --backtitle "AvaotaOS Build Framework" --title "Boards" --menu "select board" 15 60 2 \
             avaota-a1 "Avaota A1" \
-            yuzuki-chameleon "Yuzuki Chameleon" \
+            avaota-c1 "Avaota C1" \
             2> $temp
         if [ $? == 1 ];then
           exit 2
