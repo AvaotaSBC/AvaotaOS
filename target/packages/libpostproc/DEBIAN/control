@@ -1,0 +1,22 @@
+Package: libpostproc56-avaota
+Source: ffmpeg
+Version: 7:5.1.4-0+deb12u1
+Architecture: arm64
+Maintainer: Debian Multimedia Maintainers <debian-multimedia@lists.debian.org>
+Installed-Size: 159
+Depends: libavutil57-avaota (>= 7:5.0), libc6 (>= 2.17)
+Section: libs
+Priority: optional
+Multi-Arch: same
+Homepage: https://ffmpeg.org/
+Provides: libpostproc56
+Conflicts: libpostproc56
+Description: FFmpeg library for post processing - runtime files
+ FFmpeg is the leading multimedia framework, able to decode, encode, transcode,
+ mux, demux, stream, filter and play pretty much anything that humans and
+ machines have created. It supports the most obscure ancient formats up to the
+ cutting edge.
+ .
+ This library provides video post processing.
+ .
+ This package contains the runtime files.

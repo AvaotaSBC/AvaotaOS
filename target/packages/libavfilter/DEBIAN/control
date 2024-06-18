@@ -1,0 +1,23 @@
+Package: libavfilter8-avaota
+Source: ffmpeg
+Version: 7:5.1.4-0+deb12u1
+Architecture: arm64
+Maintainer: Debian Multimedia Maintainers <debian-multimedia@lists.debian.org>
+Installed-Size: 11304
+Depends: libass9 (>= 1:0.13.6), libavcodec59-avaota (= 7:5.1.4-0+deb12u1), libavformat59-avaota (>= 7:5.0), libavutil57-avaota (= 7:5.1.4-0+deb12u1), libbs2b0 (>= 3.1.0+dfsg), libc6 (>= 2.35), libflite1 (>= 1.4-release-9~), libfontconfig1 (>= 2.12.6), libfreetype6 (>= 2.2.1), libfribidi0 (>= 0.19.2), liblilv-0-0 (>= 0.14.2~dfsg0), libmysofa1 (>= 0.7~), libplacebo208 (>= 4.208.0), libpocketsphinx3 (>= 0.8+5prealpha+1), libpostproc56-avaota (>= 7:5.0), librubberband2 (>= 3.1.2+dfsg0), libsphinxbase3 (>= 0.8+5prealpha), libstdc++6 (>= 11), libswresample4-avaota (>= 7:5.1), libswscale6-avaota (>= 7:5.0), libva2 (>= 1.7.3), libvidstab1.1, libzimg2 (>= 0.3.1), libzmq5 (>= 3.2.3+dfsg), ocl-icd-libopencl1 | libopencl1, ocl-icd-libopencl1 (>= 1.0) | libopencl-1.2-1, zlib1g (>= 1:1.1.4)
+Section: libs
+Priority: optional
+Multi-Arch: same
+Homepage: https://ffmpeg.org/
+Provides: libavfilter8
+Conflicts: libavfilter8
+Description: FFmpeg library containing media filters - runtime files
+ FFmpeg is the leading multimedia framework, able to decode, encode, transcode,
+ mux, demux, stream, filter and play pretty much anything that humans and
+ machines have created. It supports the most obscure ancient formats up to the
+ cutting edge.
+ .
+ This library provides a generic audio/video filtering framework containing
+ several filters, sources and sinks.
+ .
+ This package contains the runtime files.

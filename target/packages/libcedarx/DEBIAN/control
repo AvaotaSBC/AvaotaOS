@@ -1,0 +1,11 @@
+Package: libcedarx-avaota
+Source: ffmpeg
+Version: 7:5.1.4-0+deb12u1
+Architecture: arm64
+Maintainer: Debian Multimedia Maintainers <debian-multimedia@lists.debian.org>
+Installed-Size: 159
+Depends: libc6 (>= 2.17)
+Section: libs
+Priority: optional
+Multi-Arch: same
+Description: FFmpeg library for sunxi-coder.

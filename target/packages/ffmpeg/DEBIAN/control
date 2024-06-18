@@ -1,0 +1,23 @@
+Package: ffmpeg-avaota
+Version: 7:5.1.4-0+deb12u1
+Architecture: arm64
+Maintainer: Debian Multimedia Maintainers <debian-multimedia@lists.debian.org>
+Installed-Size: 2528
+Depends: libavcodec59-avaota (>= 7:5.0), libavdevice59-avaota (>= 7:5.0), libavfilter8-avaota (>= 7:5.1), libavformat59-avaota (>= 7:5.1), libavutil57-avaota (>= 7:5.1), libc6 (>= 2.35), libpostproc56-avaota (>= 7:5.0), libsdl2-2.0-0 (>= 2.0.12), libswresample4-avaota (>= 7:5.1), libswscale6-avaota (>= 7:5.0), libcedarx-avaota
+Section: video
+Priority: optional
+Multi-Arch: foreign
+Homepage: https://ffmpeg.org/
+Provides: ffmpeg
+Conflicts: ffmpeg
+Description: Tools for transcoding, streaming and playing of multimedia files
+ FFmpeg is the leading multimedia framework, able to decode, encode, transcode,
+ mux, demux, stream, filter and play pretty much anything that humans and
+ machines have created. It supports the most obscure ancient formats up to the
+ cutting edge.
+ .
+ This package contains:
+  * ffmpeg: a command line tool to convert multimedia files between formats
+  * ffplay: a simple media player based on SDL and the FFmpeg libraries
+  * ffprobe: a simple multimedia stream analyzer
+  * qt-faststart: a utility to rearrange Quicktime files

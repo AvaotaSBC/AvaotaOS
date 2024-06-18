@@ -1,0 +1,25 @@
+Package: libavformat59-avaota
+Source: ffmpeg
+Version: 7:5.1.4-0+deb12u1
+Architecture: arm64
+Maintainer: Debian Multimedia Maintainers <debian-multimedia@lists.debian.org>
+Installed-Size: 2787
+Depends: libavcodec59-avaota (= 7:5.1.4-0+deb12u1), libavutil57-avaota (= 7:5.1.4-0+deb12u1), libbluray2 (>= 1:0.2.2), libbz2-1.0, libc6 (>= 2.35), libchromaprint1 (>= 1.3.2), libgme0 (>= 0.5.5), libgnutls30 (>= 3.7.5), libopenmpt0 (>= 0.3.0), librabbitmq4 (>= 0.6.0), librist4 (>= 0.2.6+dfsg), libsrt1.5-gnutls (>= 1.5.1), libssh-gcrypt-4 (>= 0.8.0), libxml2 (>= 2.7.4), libzmq5 (>= 4.0.1+dfsg), zlib1g (>= 1:1.2.0.2)
+Section: libs
+Priority: optional
+Multi-Arch: same
+Homepage: https://ffmpeg.org/
+Provides: libavformat59
+Conflicts: libavformat59
+Description: FFmpeg library with (de)muxers for multimedia containers - runtime files
+ FFmpeg is the leading multimedia framework, able to decode, encode, transcode,
+ mux, demux, stream, filter and play pretty much anything that humans and
+ machines have created. It supports the most obscure ancient formats up to the
+ cutting edge.
+ .
+ This library provides a generic framework for multiplexing and demultiplexing
+ (muxing and demuxing) audio, video and subtitle streams. It encompasses
+ multiple muxers and demuxers for multimedia container formats. It also
+ supports several input and output protocols to access a media resource.
+ .
+ This package contains the runtime files.

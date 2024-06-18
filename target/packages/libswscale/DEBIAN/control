@@ -1,0 +1,33 @@
+Package: libswscale6-avaota
+Source: ffmpeg
+Version: 7:5.1.4-0+deb12u1
+Architecture: arm64
+Maintainer: Debian Multimedia Maintainers <debian-multimedia@lists.debian.org>
+Installed-Size: 608
+Depends: libavutil57-avaota (= 7:5.1.4-0+deb12u1), libc6 (>= 2.34)
+Section: libs
+Priority: optional
+Multi-Arch: same
+Homepage: https://ffmpeg.org/
+Provides: libswscale6
+Conflicts: libswscale6
+Description: FFmpeg library for image scaling and various conversions - runtime files
+ FFmpeg is the leading multimedia framework, able to decode, encode, transcode,
+ mux, demux, stream, filter and play pretty much anything that humans and
+ machines have created. It supports the most obscure ancient formats up to the
+ cutting edge.
+ .
+ This library performs highly optimized image scaling and colorspace and pixel
+ format conversion operations.
+ Specifically, this library performs the following conversions:
+  * Rescaling is the process of changing the video size. Several rescaling
+    options and algorithms are available. This is usually a lossy process.
+  * Pixel format conversion is the process of converting the image format and
+    colorspace of the image, for example from planar YUV420P to RGB24 packed.
+    It also handles packing conversion, that is converts from packed layout
+    (all pixels belonging to distinct planes interleaved in the same buffer),
+    to planar layout (all samples belonging to the same plane stored in a
+    dedicated buffer or "plane"). This is usually a lossy process in case the
+    source and destination colorspaces differ.
+ .
+ This package contains the runtime files.
