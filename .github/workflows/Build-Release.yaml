@@ -48,7 +48,7 @@ jobs:
           - distro: noble
             distro-type: xfce
     uses: AvaotaSBC/AvaotaOS/.github/workflows/Build-AvaotaOS.yaml@main
-    needs: [build-kernel]
+    needs: [prepare_release, build-kernel]
     with:
       config-board: ${{ matrix.board }}
       config-distro: ${{ matrix.distro }} 
