@@ -63,7 +63,7 @@ jobs:
       #       -i no \
       #       -o yes \
       #       -e no
-
+      - run: mkdir -p ./build_dir/sun55i_t527_bsp_defconfig-kernel-pkgs/
       - run: touch ./build_dir/sun55i_t527_bsp_defconfig-kernel-pkgs/aaaa.deb
       - run: touch ./build_dir/sun55i_t527_bsp_defconfig-kernel-pkgs/.done
 
