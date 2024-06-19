@@ -24,9 +24,7 @@ jobs:
       matrix:
         board: [avaota-a1]
         distro: [jammy, noble, bullseye, bookworm, trixie]
-        include:
-          - distro-type: cli
-          - distro-type: gnome
+        distro-type: [cli, gnome]
     uses: AvaotaSBC/AvaotaOS/.github/workflows/Build-AvaotaOS.yaml@main
     needs: [prepare_release]
     with:
