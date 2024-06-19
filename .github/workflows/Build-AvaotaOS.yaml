@@ -67,7 +67,7 @@ jobs:
       - name: build AvaotaOS
         shell: bash
         run: |
-          sudo bash build_all.sh \
+          sudo -E bash build_all.sh \
             -b ${{ inputs.config-board }} \
             -v ${{ inputs.config-distro }} \
             -t ${{ inputs.config-distro-type }} \
