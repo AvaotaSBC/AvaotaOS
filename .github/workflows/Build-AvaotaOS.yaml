@@ -62,6 +62,8 @@ jobs:
           name: kernel_pkg
           path: build_dir/sun55i_t527_bsp_defconfig-kernel-pkgs/
 
+      - run: ls -R .
+
       # - name: build AvaotaOS
       #   shell: bash
       #   run: |
