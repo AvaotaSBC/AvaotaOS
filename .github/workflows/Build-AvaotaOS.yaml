@@ -9,6 +9,9 @@ on:
       config-distro:
         required: true
         type: string
+      config-distro-type:
+        required: true
+        type: string
       config-release_id:
         required: true
         type: string
@@ -58,7 +61,17 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          sudo bash build_all.sh -b avaota-a1 -v jammy -t cli -u avaota -p avaota -s avaota -k no -i no -o no -e no
+          sudo bash build_all.sh \
+            -b ${{ inputs.board }} \
+            -v ${{ inputs.config-distro }} \
+            -t ${{ inputs.config-distro-type }} \
+            -u avaota \
+            -p avaota \
+            -s avaota \
+            -k no \
+            -i no \
+            -o no \
+            -e no
 
       - name: Upload
         if: needs.prepare_release.outputs.release_id != ''
