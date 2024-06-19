@@ -31,19 +31,6 @@ jobs:
             /usr/share/dotnet \
             /etc/mysql \
             /etc/php
-          sudo -E apt-get -y purge \
-            azure-cli \
-            ghc* \
-            zulu* \
-            hhvm \
-            llvm* \
-            firefox \
-            google* \
-            dotnet* \
-            powershell \
-            openjdk* \
-            mysql* \
-            php*
 
       - name: load apt cache
         uses: awalsh128/cache-apt-pkgs-action@latest
