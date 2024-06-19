@@ -1,0 +1,23 @@
+name: Build Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+  
+permissions:
+  contents: write
+
+jobs:
+  prepare_release:
+    runs-on: ubuntu-latest
+    steps:
+      - id: last-release
+        uses: pozetroninc/github-action-get-latest-release@master
+        with:
+          repository: ${{ github.repository }}
+    outputs:
+      release_id: ${{ steps.last-release.outputs.id }}
+
+
+  
