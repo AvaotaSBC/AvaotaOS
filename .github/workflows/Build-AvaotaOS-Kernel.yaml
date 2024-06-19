@@ -17,10 +17,36 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: checkout
         uses: actions/checkout@v4
 
-      - uses: awalsh128/cache-apt-pkgs-action@latest
+      - name: clean environment
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          set +e
+          docker rmi `docker images -q`
+          echo "Deleting files, please wait ..."
+          sudo rm -rf \
+            /usr/share/dotnet \
+            /etc/mysql \
+            /etc/php
+          sudo -E apt-get -y purge \
+            azure-cli \
+            ghc* \
+            zulu* \
+            hhvm \
+            llvm* \
+            firefox \
+            google* \
+            dotnet* \
+            powershell \
+            openjdk* \
+            mysql* \
+            php*
+
+      - name: load apt cache
+        uses: awalsh128/cache-apt-pkgs-action@latest
         with:
           packages: |
             build-essential gcc-aarch64-linux-gnu asciidoc binutils bzip2 gawk gettext git libncurses5-dev msmtp libssl-dev texinfo \
@@ -30,7 +56,7 @@ jobs:
           version: 1.0
           execute_install_scripts: true
 
-      - name: Build
+      - name: build kernel packages
         shell: bash
         run: |
           sudo bash build_all.sh \
@@ -45,7 +71,7 @@ jobs:
             -o yes \
             -e no
 
-      - name: Upload
+      - name: upload to release
         if: needs.prepare_release.outputs.release_id != ''
         uses: xresloader/upload-to-github-release@v1
         env:
