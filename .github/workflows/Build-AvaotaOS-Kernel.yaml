@@ -60,6 +60,13 @@ jobs:
             -o yes \
             -e no
 
+      - name: upload kernel for artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel_pkg
+          path: "./build_dir/sun55i_t527_bsp_defconfig-kernel-pkgs/*.deb"
+          retention-days: 2
+
       - name: upload to release
         if: inputs.config-release_id != ''
         uses: xresloader/upload-to-github-release@v1
