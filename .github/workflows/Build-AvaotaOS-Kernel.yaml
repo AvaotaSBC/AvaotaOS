@@ -9,7 +9,10 @@ on:
       config-release_id:
         required: true
         type: string
-      
+      config-release_ver:
+        required: true
+        type: string
+        
 permissions:
   contents: write
 
@@ -48,6 +51,10 @@ jobs:
             libstdc++-arm-none-eabi-newlib libstdc++6-arm64-cross libtsan0-arm64-cross libubsan1-arm64-cross linux-libc-dev-arm64-cross
           version: 1.0
           execute_install_scripts: true
+
+      - name: set package version
+        run: |
+          echo ${{ inputs.config-release_ver }} > VERSION
 
       - name: build kernel packages
         shell: bash
