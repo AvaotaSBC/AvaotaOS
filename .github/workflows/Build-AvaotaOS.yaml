@@ -51,6 +51,11 @@ jobs:
           version: 1.0
           execute_install_scripts: true
 
+      - name: download kernel package from artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: kernel_pkg
+
       - name: build AvaotaOS
         shell: bash
         run: |
