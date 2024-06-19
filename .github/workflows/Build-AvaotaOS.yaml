@@ -26,17 +26,16 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
 
-      - name: clean build environment
-        env:
-          DEBIAN_FRONTEND: noninteractive
-        run: |
-          set +e
-          docker rmi `docker images -q`
-          echo "Deleting files, please wait ..."
-          sudo rm -rf \
-            /usr/share/dotnet \
-            /etc/mysql \
-            /etc/php
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
 
       - name: load apt cache
         uses: awalsh128/cache-apt-pkgs-action@latest
