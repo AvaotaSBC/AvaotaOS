@@ -40,6 +40,7 @@ jobs:
             python3-pyelftools haveged lrzsz scons ecj fastjar re2c xz-utils tar binutils ccache curl wget vim nano rsync coreutils
             qemu-utils upx-ucl libelf-dev autoconf automake libtool autopoint antlr3 gperf wget curl swig  gcc g++
           version: 1.0
+          execute_install_scripts: true
 
       - name: Build
         shell: bash
