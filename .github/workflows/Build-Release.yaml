@@ -19,12 +19,16 @@ jobs:
     outputs:
       release_id: ${{ steps.last-release.outputs.id }}
 
-  build-avaota-release:
+  build-release:
     strategy:
       matrix:
-        board: [avaota-a1]
-        distro: [jammy, noble, bullseye, bookworm, trixie]
-        distro-type: [cli, gnome]
+        board:
+          - avaota-a1
+        distro:
+          - jammy: [cli, gnome, xfce]
+          - noble: [cli]
+          - bullseye: [cli]
+          - bookworm: [cli]
     uses: AvaotaSBC/AvaotaOS/.github/workflows/Build-AvaotaOS.yaml@main
     needs: [prepare_release]
     with:
