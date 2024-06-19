@@ -39,7 +39,9 @@ jobs:
             build-essential gcc-aarch64-linux-gnu asciidoc binutils bzip2 gawk gettext git libncurses5-dev msmtp libssl-dev texinfo \
             libglib2.0-dev patch unzip zlib1g-dev subversion flex node-uglify git xmlto libreadline-dev python3 python3-pip \
             python3-pyelftools haveged lrzsz scons ecj fastjar re2c xz-utils tar binutils ccache curl wget vim nano rsync coreutils \
-            qemu-utils upx-ucl libelf-dev autoconf automake libtool autopoint antlr3 gperf wget curl swig gcc g++
+            qemu-utils upx-ucl libelf-dev autoconf automake libtool autopoint antlr3 gperf wget curl swig gcc g++ gcc-arm-none-eabi \
+            cmake build-essential gcc-aarch64-linux-gnu mtools qemu-user-static bc pkg-config dialog debootstrap ubuntu-keyring \
+            debian-keyring automake autoconf gcc make pixz libconfuse2 libconfuse-common libconfuse-dev
           version: 1.0
           execute_install_scripts: true
 
