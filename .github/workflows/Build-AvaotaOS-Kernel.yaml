@@ -41,7 +41,12 @@ jobs:
             python3-pyelftools haveged lrzsz scons ecj fastjar re2c xz-utils tar binutils ccache curl wget vim nano rsync coreutils \
             qemu-utils upx-ucl libelf-dev autoconf automake libtool autopoint antlr3 gperf wget curl swig gcc g++ gcc-arm-none-eabi \
             cmake build-essential gcc-aarch64-linux-gnu mtools qemu-user-static bc pkg-config dialog debootstrap ubuntu-keyring \
-            debian-keyring automake autoconf gcc make pixz libconfuse2 libconfuse-common libconfuse-dev
+            debian-keyring automake autoconf gcc make pixz libconfuse2 libconfuse-common libconfuse-dev binutils-aarch64-linux-gnu \
+            binutils-arm-none-eabi cmake-data cpp-11-aarch64-linux-gnu cpp-aarch64-linux-gnu dh-elpa-helper gcc-11-aarch64-linux-gnu \
+            gcc-11-aarch64-linux-gnu-base gcc-11-cross-base gcc-12-cross-base libasan6-arm64-cross libatomic1-arm64-cross \
+            libc6-arm64-cross libc6-dev-arm64-cross libgcc-11-dev-arm64-cross libgcc-s1-arm64-cross libgomp1-arm64-cross libhwasan0-arm64-cross \
+            libitm1-arm64-cross libjsoncpp25 liblsan0-arm64-cross libnewlib-arm-none-eabi libnewlib-dev librhash0 libstdc++-arm-none-eabi-dev \
+            libstdc++-arm-none-eabi-newlib libstdc++6-arm64-cross libtsan0-arm64-cross libubsan1-arm64-cross linux-libc-dev-arm64-cross
           version: 1.0
           execute_install_scripts: true
 
