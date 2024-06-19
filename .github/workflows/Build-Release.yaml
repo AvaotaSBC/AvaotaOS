@@ -24,7 +24,7 @@ jobs:
       matrix:
         board:
           - avaota-a1
-    uses: AvaotaSBC/AvaotaOS/.github/workflows/actions/Build-AvaotaOS-Kernel.yaml@main
+    uses: AvaotaSBC/AvaotaOS/.github/workflows/Build-AvaotaOS-Kernel.yaml@main
     needs: [prepare_release]
     with:
       config-board: ${{ matrix.board }}
@@ -47,7 +47,7 @@ jobs:
             distro-type: gnome
           - distro: noble
             distro-type: xfce
-    uses: AvaotaSBC/AvaotaOS/.github/workflows/actions/Build-AvaotaOS.yaml@main
+    uses: AvaotaSBC/AvaotaOS/.github/workflows/Build-AvaotaOS.yaml@main
     needs: [prepare_release, build-kernel]
     with:
       config-board: ${{ matrix.board }}
