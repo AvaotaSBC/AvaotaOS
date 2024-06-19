@@ -65,6 +65,11 @@ jobs:
       #       -o yes \
       #       -e no
 
+      - name: add file
+        run: |
+          mkdir -p ./build_dir/sun55i_t527_bsp_defconfig-kernel-pkgs/
+          touch ./build_dir/sun55i_t527_bsp_defconfig-kernel-pkgs/aaa.deb
+
       - name: upload kernel for artifact
         uses: actions/upload-artifact@v4
         with:
