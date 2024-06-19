@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   prepare_release:
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ubuntu-latest
     steps:
       - id: last-release
         uses: pozetroninc/github-action-get-latest-release@master
