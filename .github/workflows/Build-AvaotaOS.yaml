@@ -62,7 +62,7 @@ jobs:
         shell: bash
         run: |
           sudo bash build_all.sh \
-            -b ${{ inputs.board }} \
+            -b ${{ inputs.config-board }} \
             -v ${{ inputs.config-distro }} \
             -t ${{ inputs.config-distro-type }} \
             -u avaota \
