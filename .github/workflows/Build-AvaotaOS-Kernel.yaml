@@ -52,7 +52,7 @@ jobs:
       - name: build kernel packages
         shell: bash
         run: |
-          sudo bash build_all.sh \
+          sudo -E bash build_all.sh \
             -b ${{ inputs.config-board }} \
             -v jammy \
             -t cli \
