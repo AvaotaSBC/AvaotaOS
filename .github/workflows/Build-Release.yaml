@@ -20,7 +20,7 @@ jobs:
       release_id: ${{ steps.last-release.outputs.id }}
 
   build-cli-jammy:
-    uses: AvaotaSBC/AvaotaOS/.github/workflows/Build-AvaotaOS@main
+    uses: AvaotaSBC/AvaotaOS/.github/workflows/Build-AvaotaOS.yaml@main
     needs: [prepare_release]
     with:
       config-board: avaota-a1
