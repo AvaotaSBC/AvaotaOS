@@ -26,35 +26,35 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
 
-      - name: clean build environment
-        env:
-          DEBIAN_FRONTEND: noninteractive
-        run: |
-          set +e
-          docker rmi `docker images -q`
-          echo "Deleting files, please wait ..."
-          sudo rm -rf \
-            /usr/share/dotnet \
-            /etc/mysql \
-            /etc/php
+      # - name: clean build environment
+      #   env:
+      #     DEBIAN_FRONTEND: noninteractive
+      #   run: |
+      #     set +e
+      #     docker rmi `docker images -q`
+      #     echo "Deleting files, please wait ..."
+      #     sudo rm -rf \
+      #       /usr/share/dotnet \
+      #       /etc/mysql \
+      #       /etc/php
 
-      - name: load apt cache
-        uses: awalsh128/cache-apt-pkgs-action@latest
-        with:
-          packages: |
-            build-essential gcc-aarch64-linux-gnu asciidoc binutils bzip2 gawk gettext git libncurses5-dev msmtp libssl-dev texinfo \
-            libglib2.0-dev patch unzip zlib1g-dev subversion flex node-uglify git xmlto libreadline-dev python3 python3-pip \
-            python3-pyelftools haveged lrzsz scons ecj fastjar re2c xz-utils tar binutils ccache curl wget vim nano rsync coreutils \
-            qemu-utils upx-ucl libelf-dev autoconf automake libtool autopoint antlr3 gperf wget curl swig gcc g++ gcc-arm-none-eabi \
-            cmake build-essential gcc-aarch64-linux-gnu mtools qemu-user-static bc pkg-config dialog debootstrap ubuntu-keyring \
-            debian-keyring automake autoconf gcc make pixz libconfuse2 libconfuse-common libconfuse-dev binutils-aarch64-linux-gnu \
-            binutils-arm-none-eabi cmake-data cpp-11-aarch64-linux-gnu cpp-aarch64-linux-gnu dh-elpa-helper gcc-11-aarch64-linux-gnu \
-            gcc-11-aarch64-linux-gnu-base gcc-11-cross-base gcc-12-cross-base libasan6-arm64-cross libatomic1-arm64-cross \
-            libc6-arm64-cross libc6-dev-arm64-cross libgcc-11-dev-arm64-cross libgcc-s1-arm64-cross libgomp1-arm64-cross libhwasan0-arm64-cross \
-            libitm1-arm64-cross libjsoncpp25 liblsan0-arm64-cross libnewlib-arm-none-eabi libnewlib-dev librhash0 libstdc++-arm-none-eabi-dev \
-            libstdc++-arm-none-eabi-newlib libstdc++6-arm64-cross libtsan0-arm64-cross libubsan1-arm64-cross linux-libc-dev-arm64-cross unzip
-          version: 1.0
-          execute_install_scripts: true
+      # - name: load apt cache
+      #   uses: awalsh128/cache-apt-pkgs-action@latest
+      #   with:
+      #     packages: |
+      #       build-essential gcc-aarch64-linux-gnu asciidoc binutils bzip2 gawk gettext git libncurses5-dev msmtp libssl-dev texinfo \
+      #       libglib2.0-dev patch unzip zlib1g-dev subversion flex node-uglify git xmlto libreadline-dev python3 python3-pip \
+      #       python3-pyelftools haveged lrzsz scons ecj fastjar re2c xz-utils tar binutils ccache curl wget vim nano rsync coreutils \
+      #       qemu-utils upx-ucl libelf-dev autoconf automake libtool autopoint antlr3 gperf wget curl swig gcc g++ gcc-arm-none-eabi \
+      #       cmake build-essential gcc-aarch64-linux-gnu mtools qemu-user-static bc pkg-config dialog debootstrap ubuntu-keyring \
+      #       debian-keyring automake autoconf gcc make pixz libconfuse2 libconfuse-common libconfuse-dev binutils-aarch64-linux-gnu \
+      #       binutils-arm-none-eabi cmake-data cpp-11-aarch64-linux-gnu cpp-aarch64-linux-gnu dh-elpa-helper gcc-11-aarch64-linux-gnu \
+      #       gcc-11-aarch64-linux-gnu-base gcc-11-cross-base gcc-12-cross-base libasan6-arm64-cross libatomic1-arm64-cross \
+      #       libc6-arm64-cross libc6-dev-arm64-cross libgcc-11-dev-arm64-cross libgcc-s1-arm64-cross libgomp1-arm64-cross libhwasan0-arm64-cross \
+      #       libitm1-arm64-cross libjsoncpp25 liblsan0-arm64-cross libnewlib-arm-none-eabi libnewlib-dev librhash0 libstdc++-arm-none-eabi-dev \
+      #       libstdc++-arm-none-eabi-newlib libstdc++6-arm64-cross libtsan0-arm64-cross libubsan1-arm64-cross linux-libc-dev-arm64-cross unzip
+      #     version: 1.0
+      #     execute_install_scripts: true
 
       - name: download kernel package from artifact
         uses: actions/download-artifact@v4
@@ -62,20 +62,20 @@ jobs:
           name: kernel_pkg
           path: build_dir/sun55i_t527_bsp_defconfig-kernel-pkgs/
 
-      - name: build AvaotaOS
-        shell: bash
-        run: |
-          sudo bash build_all.sh \
-            -b ${{ inputs.config-board }} \
-            -v ${{ inputs.config-distro }} \
-            -t ${{ inputs.config-distro-type }} \
-            -u avaota \
-            -p avaota \
-            -s avaota \
-            -k no \
-            -i no \
-            -o no \
-            -e no
+      # - name: build AvaotaOS
+      #   shell: bash
+      #   run: |
+      #     sudo bash build_all.sh \
+      #       -b ${{ inputs.config-board }} \
+      #       -v ${{ inputs.config-distro }} \
+      #       -t ${{ inputs.config-distro-type }} \
+      #       -u avaota \
+      #       -p avaota \
+      #       -s avaota \
+      #       -k no \
+      #       -i no \
+      #       -o no \
+      #       -e no
 
       - name: upload to release
         if: inputs.config-release_id != ''
