@@ -20,32 +20,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Clean environment
-        env:
-          DEBIAN_FRONTEND: noninteractive
-        run: |
-          set +e
-          docker rmi `docker images -q`
-          echo "Deleting files, please wait ..."
-          sudo rm -rf \
-            /usr/share/dotnet \
-            /etc/mysql \
-            /etc/php
-          sudo -E apt-get -y purge \
-            azure-cli \
-            ghc* \
-            zulu* \
-            hhvm \
-            llvm* \
-            firefox \
-            google* \
-            dotnet* \
-            powershell \
-            openjdk* \
-            mysql* \
-            php*
-          sudo -E apt-get update
-
       - uses: awalsh128/cache-apt-pkgs-action@latest
         with:
           packages: |
