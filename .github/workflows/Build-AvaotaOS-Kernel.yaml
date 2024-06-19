@@ -61,11 +61,11 @@ jobs:
             -e no
 
       - name: upload to release
-        if: needs.prepare_release.outputs.release_id != ''
+        if: inputs.config-release_id != ''
         uses: xresloader/upload-to-github-release@v1
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          release_id: ${{ needs.prepare_release.outputs.release_id }}
+          release_id: ${{ inputs.config-release_id }}
           file: "./build_dir/sun55i_t527_bsp_defconfig-kernel-pkgs/*.deb"
           draft: false
