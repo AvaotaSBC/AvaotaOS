@@ -18,6 +18,7 @@ jobs:
           repository: ${{ github.repository }}
     outputs:
       release_id: ${{ steps.last-release.outputs.id }}
+      release_ver: ${{ steps.last-release.outputs.release }}
 
   build-kernel:
     strategy:
@@ -29,6 +30,7 @@ jobs:
     with:
       config-board: ${{ matrix.board }}
       config-release_id: ${{ needs.prepare_release.outputs.release_id }}
+      config-release_ver: ${{ needs.prepare_release.outputs.release_ver }}
 
   build-release:
     strategy:
