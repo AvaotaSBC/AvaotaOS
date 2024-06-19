@@ -25,10 +25,17 @@ jobs:
         board:
           - avaota-a1
         distro:
-          - jammy: [cli, gnome, xfce]
-          - noble: [cli]
-          - bullseye: [cli]
-          - bookworm: [cli]
+          - jammy
+          - noble
+        distro-type:
+          - cli
+          - gnome
+          - xfce
+        exclude:
+          - distro: noble
+            distro-type: gnome
+          - distro: noble
+            distro-type: xfce
     uses: AvaotaSBC/AvaotaOS/.github/workflows/Build-AvaotaOS.yaml@main
     needs: [prepare_release]
     with:
