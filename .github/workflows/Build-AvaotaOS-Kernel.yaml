@@ -64,12 +64,15 @@ jobs:
       #       -o yes \
       #       -e no
 
-      # - name: upload kernel for artifact
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: kernel_pkg
-      #     path: "./build_dir/sun55i_t527_bsp_defconfig-kernel-pkgs/*.*"
-      #     retention-days: 2
+      - run: touch ./build_dir/sun55i_t527_bsp_defconfig-kernel-pkgs/aaaa.deb
+      - run: touch ./build_dir/sun55i_t527_bsp_defconfig-kernel-pkgs/.done
+
+      - name: upload kernel for artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel_pkg
+          path: "./build_dir/sun55i_t527_bsp_defconfig-kernel-pkgs/*.*"
+          retention-days: 2
 
       - name: upload to release
         if: inputs.config-release_id != ''
