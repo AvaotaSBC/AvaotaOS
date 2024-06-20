@@ -316,21 +316,21 @@ ROOTFS=${workspace}/rootfs
 source ../boards/${BOARD}.conf
 
 if [ ${LOCAL} == "no" ];then
-bash ../scripts/fetch.sh -b ${BOARD} -i ${GITHUB_MIRROR}
+    sudo bash ../scripts/fetch.sh -b ${BOARD} -i ${GITHUB_MIRROR}
 fi
 
 if [[ -f ${workspace}/bootloader-${BOARD}/.done && \
     $(cat ${workspace}/bootloader-${BOARD}/.done) == "${BOARD}" ]];then
     echo "found bootloader file, skip build bootloader."
 else
-    bash ../scripts/mkbootloader.sh -b ${BOARD}
+    sudo bash ../scripts/mkbootloader.sh -b ${BOARD}
 fi
 
-if [[ -f ${workspace}/${LINUX_CONFIG}-kernel-pkgs/.done && \
-    $(cat ${workspace}/${LINUX_CONFIG}-kernel-pkgs/.done) == "${LINUX_CONFIG}" ]];then
+if [[ -f ${workspace}/${BOARD}-kernel-pkgs/.done && \
+    $(cat ${workspace}/${BOARD}-kernel-pkgs/.done) == "${LINUX_CONFIG}" ]];then
     echo "found kernel packages, skip build kernel."
 else
-    bash ../scripts/mklinux.sh -c ${LINUX_CONFIG} -k ${KERNEL_MENUCONFIG} -a ${ARCH} -g ${KERNEL_GCC} -e ${USE_CCACHE}
+    sudo bash ../scripts/mklinux.sh -b ${BOARD} -k ${KERNEL_MENUCONFIG} -e ${USE_CCACHE}
 fi
 
 if [ ${KERNEL_ONLY} == "yes" ];then
@@ -341,9 +341,9 @@ fi
 if [ -f ${workspace}/ubuntu-${VERSION}-${TYPE}/THIS-IS-NOT-YOUR-ROOT ];then
     echo "found rootfs, skip build rootfs."
 else
-    sudo mkdir ${ROOTFS} && sudo bash ../scripts/mkrootfs.sh -m ${MIRROR} -r ${ROOTFS} -v ${VERSION} -a ${ARCH} -t ${TYPE} -c ${LINUX_CONFIG} -u ${SYS_USER} -p ${SYS_PASSWORD} -s ${ROOT_PASSWORD}
+    sudo mkdir ${ROOTFS} && sudo bash ../scripts/mkrootfs.sh -m ${MIRROR} -r ${ROOTFS} -v ${VERSION} -b ${BOARD} -t ${TYPE} -u ${SYS_USER} -p ${SYS_PASSWORD} -s ${ROOT_PASSWORD}
 fi
-bash ../scripts/pack.sh -t ${TYPE} -v ${VERSION}
+sudo bash ../scripts/pack.sh -t ${TYPE} -v ${VERSION}
 
 if [ -f sdcard.img.xz ];then
     mv sdcard.img.xz AvaotaOS-${VERSION}-${TYPE}-${ARCH}-${BOARD}.img.xz

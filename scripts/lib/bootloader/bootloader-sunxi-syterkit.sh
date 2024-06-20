@@ -12,7 +12,7 @@ BOARD=$1
 source ${BL_CONF_PATH}
 source ../boards/${BOARD}.conf
 cd syterkit && mkdir build-${BOARD} && cd build-${BOARD}
-cmake -DCMAKE_BOARD_FILE=${BOARD}.cmake -DCMAKE_BUILD_TYPE=Debug ..
+cmake -DCMAKE_BOARD_FILE=${BOARD}.cmake -DCMAKE_BUILD_TYPE=Release ..
 make -j$(nproc)
 
 if [ -d ${workspace}/bootloader-${BOARD} ];then rm -rf ${workspace}/bootloader-${BOARD}; fi

@@ -11,9 +11,8 @@ Build linux.
 The target Image & dtb will be generated in the build folder of the directory where the mklinux.sh script is located.
 
 Options: 
-  -c, --config CONFIG                 The linux configure file.
+  -b, --board BOARD                   The target board.
   -k, --kernelmenuconfig              If run kernel menuconfig.
-  -a, --arch                          Target arch.
   -e, --ccache                        If use ccache.
   -h, --help                          Show command help.
 "
@@ -25,8 +24,8 @@ help()
 }
 
 default_param() {
+    BOARD=avaota-a1
     KERNEL_MENUCONFIG=no
-    ARCH=arm64
     USE_CCACHE=no
 }
 
@@ -42,20 +41,12 @@ parseargs()
             return 1
         elif [ "x$1" == "x" ]; then
             shift
-        elif [ "x$1" == "x-c" -o "x$1" == "x--config" ]; then
-            LINUX_CONFIG=`echo $2`
+        elif [ "x$1" == "x-b" -o "x$1" == "x--board" ]; then
+            BOARD=`echo $2`
             shift
             shift
         elif [ "x$1" == "x-k" -o "x$1" == "x--kernelmenuconfig" ]; then
             KERNEL_MENUCONFIG=`echo $2`
-            shift
-            shift
-        elif [ "x$1" == "x-a" -o "x$1" == "x--arch" ]; then
-            ARCH=`echo $2`
-            shift
-            shift
-        elif [ "x$1" == "x-g" -o "x$1" == "x--gcc" ]; then
-            KERNEL_GCC=`echo $2`
             shift
             shift
         elif [ "x$1" == "x-e" -o "x$1" == "x--ccache" ]; then
@@ -378,10 +369,12 @@ cd ${workspace}
 default_param
 parseargs "$@" || help $?
 
+source ../boards/${BOARD}.conf
+
 AVA_VERSION=$(cat ../VERSION)
 kconfig_name=${LINUX_CONFIG:0:-10}
 PKG_NAME=${kconfig_name//_/-}
-PACKAGES_OUTPUT_PATH=${workspace}/${LINUX_CONFIG}-kernel-pkgs
+PACKAGES_OUTPUT_PATH=${workspace}/${BOARD}-kernel-pkgs
 
 MAKE="make"
 if [ ${USE_CCACHE} == "yes" ];then
@@ -400,4 +393,4 @@ gen_debian_file
 gen_package_doc
 pack_kernel_packages
 
-echo "${LINUX_CONFIG}" > ${workspace}/${LINUX_CONFIG}-kernel-pkgs/.done
+echo "${LINUX_CONFIG}" > ${workspace}/${BOARD}-kernel-pkgs/.done
