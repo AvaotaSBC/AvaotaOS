@@ -85,5 +85,5 @@ jobs:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           release_id: ${{ inputs.config-release_id }}
-          file: "./build_dir/sun55i_t527_bsp_defconfig-kernel-pkgs/*.deb"
+          file: "./build_dir/${{ inputs.config-board }}-kernel-pkgs/*.deb"
           draft: false
