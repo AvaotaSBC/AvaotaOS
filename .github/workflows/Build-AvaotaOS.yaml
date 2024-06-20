@@ -62,7 +62,7 @@ jobs:
           path: build_dir/${{ inputs.config-board }}-kernel-pkgs/
 
       - name: set kernel package from artifact
-        run: touch build_dir/sun55i_t527_bsp_defconfig-kernel-pkgs/.done
+        run: touch build_dir/${{ inputs.config-board }}-kernel-pkgs/.done
 
       - name: build AvaotaOS
         shell: bash
