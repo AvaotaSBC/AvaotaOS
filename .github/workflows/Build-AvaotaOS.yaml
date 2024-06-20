@@ -59,7 +59,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: kernel_pkg
-          path: build_dir/sun55i_t527_bsp_defconfig-kernel-pkgs/
+          path: build_dir/${{ inputs.config-board }}-kernel-pkgs/
 
       - name: set kernel package from artifact
         run: touch build_dir/sun55i_t527_bsp_defconfig-kernel-pkgs/.done
