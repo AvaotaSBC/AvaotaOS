@@ -44,11 +44,7 @@ jobs:
           - cli
           - gnome
           - xfce
-        exclude:
-          - distro: noble
-            distro-type: gnome
-          - distro: noble
-            distro-type: xfce
+          - kde
     uses: AvaotaSBC/AvaotaOS/.github/workflows/Build-AvaotaOS.yaml@main
     needs: [prepare_release, build-kernel]
     with:
