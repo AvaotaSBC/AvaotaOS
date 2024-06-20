@@ -15,7 +15,7 @@ Options:
   -m, --mirror MIRROR_ADDR         The URL/path of target mirror address.
   -r, --rootfs ROOTFS_DIR          The directory name of ubuntu rootfs.
   -v, --version UBUNTU_VER         The version of ubuntu/debian.
-  -a, --arch ARCH                  The arch of ubuntu/debian.
+  -b, --board BOARD                The target board.
   -t, --type ROOTFS_TYPE           The type of rootfs: cli, xfce, gnome, kde.
   -u, --user SYS_USER              The normal user of rootfs.
   -p, --password SYS_PASSWORD      The password of user.
@@ -30,7 +30,7 @@ help()
 }
 
 default_param() {
-    ARCH=arm64
+    BOARD=avaota-a1
     ROOTFS=rootfs
     VERSION=jammy
     TYPE=cli
@@ -68,16 +68,12 @@ parseargs()
             VERSION=`echo $2`
             shift
             shift
-        elif [ "x$1" == "x-a" -o "x$1" == "x--arch" ]; then
-            ARCH=`echo $2`
+        elif [ "x$1" == "x-b" -o "x$1" == "x--BOARD" ]; then
+            BOARD=`echo $2`
             shift
             shift
         elif [ "x$1" == "x-t" -o "x$1" == "x--type" ]; then
             TYPE=`echo $2`
-            shift
-            shift
-        elif [ "x$1" == "x-c" -o "x$1" == "x--config" ]; then
-            LINUX_CONFIG=`echo $2`
             shift
             shift
         elif [ "x$1" == "x-u" -o "x$1" == "x--user" ]; then
@@ -127,7 +123,7 @@ INSTALL_PACKAGES(){
 
 run_debootstrap(){
 
-echo You are running this scipt on a ${HOST_ARCH} mechine....
+    echo You are running this scipt on a ${HOST_ARCH} mechine....
 
     if [ -d ${ROOTFS} ];then rm -rf ${ROOTFS}; fi
     mkdir ${ROOTFS}
@@ -195,7 +191,7 @@ fi
 }
 
 install_kernel_packages(){
-cp -r ${LINUX_CONFIG}-kernel-pkgs ${ROOTFS}/kernel-deb
+cp -r ${BOARD}-kernel-pkgs ${ROOTFS}/kernel-deb
 
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get update
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get upgrade -y
@@ -300,10 +296,38 @@ LABEL=rootfs    /               ext4    defaults,noatime  0       1
 EOF
 }
 
+pack_target_pcakages(){
+    if [ -d target_packages ];then
+        rm -rf target_packages
+    fi
+    mkdir target_packages
+    for pkg in $(ls ${workspace}/../target/packages)
+    do
+        gen_md5 \
+            ${workspace}/../target/packages/${pkg}/DEBIAN/md5sums \
+            ${workspace}/../target/packages/${pkg}
+        dpkg-deb -b \
+            ${workspace}/../target/packages/${pkg} \
+            target_packages
+        if [ $? == 0 ]; then
+            echo "packaged $pkg."
+        else
+            echo "can not package $pkg."
+        fi
+        rm ${workspace}/../target/packages/${pkg}/DEBIAN/md5sums
+    done
+}
+
 HOST_ARCH=$(arch)
+
+workspace=$(pwd)
+cd ${workspace}
 
 default_param
 parseargs "$@" || help $?
+
+source ../boards/${BOARD}.conf
+source ${workspace}/../scripts/lib/packages/useroverlay-deb.sh
 
 run_debootstrap
 prepare_apt-list
@@ -323,6 +347,7 @@ fi
 setup_firstrun
 clean_rootfs
 setup_hostname_fstab
+pack_target_pcakages
 
 UMOUNT_ALL
 
