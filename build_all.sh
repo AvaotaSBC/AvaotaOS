@@ -345,8 +345,9 @@ else
 fi
 sudo bash ../scripts/pack.sh -t ${TYPE} -v ${VERSION}
 
+AVA_VERSION=$(cat ../VERSION)
 if [ -f sdcard.img.xz ];then
-    mv sdcard.img.xz AvaotaOS-${VERSION}-${TYPE}-${ARCH}-${BOARD}.img.xz
+    mv sdcard.img.xz AvaotaOS-${AVA_VERSION}-${VERSION}-${TYPE}-${ARCH}-${BOARD}.img.xz
     echo "build success."
 else
     echo "sdcard.img.xz not found, build sdcard image failed!"
