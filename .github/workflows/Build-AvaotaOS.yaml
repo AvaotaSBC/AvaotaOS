@@ -64,6 +64,10 @@ jobs:
       - name: set kernel package from artifact
         run: touch build_dir/${{ inputs.config-board }}-kernel-pkgs/.done
 
+      - name: set package version
+        run: |
+          echo ${{ inputs.config-release_ver }} > VERSION
+
       - name: build AvaotaOS
         shell: bash
         run: |
