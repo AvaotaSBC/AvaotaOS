@@ -60,6 +60,24 @@ parseargs()
     done
 }
 
+patch_kernel()
+{
+    if [ ! -d ${workspace}/linux ];then
+        echo "The linux source path not exist, exit..."
+        exit 2
+    fi
+    patchdev=$1
+    targetdir=$2
+    for pth in $(ls ${workspace}/../patches/${patchdev})
+    do
+        cp ${workspace}/../patches/${patchdev}/${pth} ${targetdir}
+        pushd ${targetdir}
+        patch -p1 < ${pth}
+        rm ${workspace}/../patches/${patchdev}/${pth}
+        popd
+    done
+}
+
 compile_linux()
 {
     if [ ! -d ${workspace}/linux ];then
@@ -384,6 +402,10 @@ fi
 source ../scripts/lib/packages/kernel-deb.sh
 
 set -e
+
+if [ ${LINUX_PATHDIR} != "none" ];then
+    patch_kernel ${LINUX_PATHDIR} ${workspace}/linux
+fi
 compile_linux
 install_dtb
 install_image_modules
