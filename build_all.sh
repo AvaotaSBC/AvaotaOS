@@ -121,7 +121,7 @@ input_box(){
         temp=`mktemp -t test.XXXXXX`
         dialog --clear --shadow --backtitle "AvaotaOS Build Framework" --title "Boards" --menu "select board" 15 60 2 \
             avaota-a1 "Avaota A1" \
-            avaota-c1 "Avaota C1" \
+            avaota-c2 "Avaota C2" \
             2> $temp
         if [ $? == 1 ];then
           exit 2
@@ -343,7 +343,7 @@ if [ -f ${workspace}/ubuntu-${VERSION}-${TYPE}/THIS-IS-NOT-YOUR-ROOT ];then
 else
     sudo mkdir ${ROOTFS} && sudo bash ../scripts/mkrootfs.sh -m ${MIRROR} -r ${ROOTFS} -v ${VERSION} -b ${BOARD} -t ${TYPE} -u ${SYS_USER} -p ${SYS_PASSWORD} -s ${ROOT_PASSWORD}
 fi
-sudo bash ../scripts/pack.sh -t ${TYPE} -v ${VERSION}
+sudo bash ../scripts/pack.sh -b ${BOARD} -t ${TYPE} -v ${VERSION}
 
 AVA_VERSION=$(cat ../VERSION)
 if [ -f sdcard.img.xz ];then

@@ -68,14 +68,21 @@ patch_kernel()
     fi
     patchdev=$1
     targetdir=$2
-    for pth in $(ls ${workspace}/../patches/${patchdev})
-    do
-        cp ${workspace}/../patches/${patchdev}/${pth} ${targetdir}
-        pushd ${targetdir}
-        patch -p1 < ${pth}
-        rm ${workspace}/../patches/${patchdev}/${pth}
-        popd
-    done
+    if [ -d ${workspace}/../patches/${patchdev}/kernel/patches ];then
+        for pth in $(ls ${workspace}/../patches/${patchdev}/kernel/patches)
+    	do
+        	cp ${workspace}/../patches/${patchdev}/kernel/patches/${pth} ${targetdir}
+        	pushd ${targetdir}
+        	patch -p1 < ${pth}
+        	rm ${pth}
+        	popd
+    	done
+    fi
+    
+    if [ -d ${workspace}/../patches/${patchdev}/kernel/files ];then
+        cp -rv ${workspace}/../patches/${patchdev}/kernel/files/* ${targetdir}
+    fi
+    
 }
 
 compile_linux()

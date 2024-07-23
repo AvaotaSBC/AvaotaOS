@@ -58,3 +58,4 @@ source ../boards/${BOARD}.conf
 source ../scripts/lib/bootloader/bootloader-${BL_CONFIG}.sh
 
 build_bootloader ${BOARD}
+apply_bootloader ${BOARD}
