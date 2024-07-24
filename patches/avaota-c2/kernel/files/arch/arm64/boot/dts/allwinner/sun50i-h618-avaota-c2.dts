@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 /*
- * Copyright (C) 2020 Arm Ltd.
- *
- * Excludes PMIC nodes and properties, since they are different between the two.
+ * Copyright (C) 2023 Arm Ltd.
  */
- /dts-v1/;
+
+/dts-v1/;
 
 #include "sun50i-h616.dtsi"
+#include "sun50i-h616-cpu-opp.dtsi"
+#include "sun50i-h618-cpu-dvfs.dtsi"
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/interrupt-controller/arm-gic.h>
 #include <dt-bindings/leds/common.h>
@@ -27,20 +28,17 @@
 	leds {
 		compatible = "gpio-leds";
 
-		act_led: led-0 {
-			gpios = <&pio 7 5 GPIO_ACTIVE_LOW>; /* PH5 */
+		led-0 {
+			function = LED_FUNCTION_STATUS;
+			color = <LED_COLOR_ID_RED>;
+			gpios = <&pio 2 12 GPIO_ACTIVE_HIGH>; /* PC12 */
 			linux,default-trigger = "heartbeat";
 		};
 
-		gpio_1 {
-			function = "wifi_power";
-			gpios = <&pio 5 6 GPIO_ACTIVE_HIGH>; /* PF6 */
-			default-state = "on";
-		};
-
-		gpio_2 {
-			function = "wifi_wake";
-			gpios = <&pio 6 15 GPIO_ACTIVE_HIGH>; /* PG15 */
+		led-1 {
+			function = LED_FUNCTION_POWER;
+			color = <LED_COLOR_ID_GREEN>;
+			gpios = <&pio 2 13 GPIO_ACTIVE_HIGH>; /* PC13 */
 			default-state = "on";
 		};
 	};
@@ -62,6 +60,35 @@
 		vin-supply = <&reg_vcc5v>;
 		enable-active-high;
 		gpio = <&pio 2 16 GPIO_ACTIVE_HIGH>; /* PC16 */
+		status = "okay";
+	};
+
+	reg_vcc33_wifi: vcc33-wifi {
+		/* Always on 3.3V regulator for WiFi and BT */
+		compatible = "regulator-fixed";
+		regulator-name = "vcc33-wifi";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		regulator-always-on;
+		vin-supply = <&reg_vcc5v>;
+	};
+
+	reg_vcc_wifi_io: vcc-wifi-io {
+		/* Always on 1.8V/300mA regulator for WiFi and BT IO */
+		compatible = "regulator-fixed";
+		regulator-name = "vcc-wifi-io";
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <1800000>;
+		regulator-always-on;
+		vin-supply = <&reg_vcc33_wifi>;
+	};
+
+	wifi_pwrseq: wifi-pwrseq {
+		compatible = "mmc-pwrseq-simple";
+		clocks = <&rtc 1>;
+		clock-names = "osc32k-out";
+		reset-gpios = <&pio 6 18 GPIO_ACTIVE_LOW>; /* PG18 */
+		post-power-on-delay-ms = <200>;
 	};
 };
 
@@ -70,6 +97,13 @@
 };
 
 /* USB 2 & 3 are on headers only. */
+&ehci2 {
+	status = "okay";
+};
+
+&ehci3 {
+	status = "okay";
+};
 
 &emac0 {
 	pinctrl-names = "default";
@@ -91,15 +125,25 @@
 	status = "okay";
 };
 
-&mmc2 {
-	vmmc-supply = <&reg_dldo1>;
-	no-1-8-v;
-	bus-width = <8>;
+&mmc1 {
+	vmmc-supply = <&reg_vcc33_wifi>;
+	vqmmc-supply = <&reg_vcc_wifi_io>;
+	mmc-pwrseq = <&wifi_pwrseq>;
+	bus-width = <4>;
 	non-removable;
+	mmc-ddr-1_8v;
 	status = "okay";
 };
 
 &ohci1 {
+	status = "okay";
+};
+
+&ohci2 {
+	status = "okay";
+};
+
+&ohci3 {
 	status = "okay";
 };
 
@@ -130,6 +174,11 @@
 	status = "okay";
 };
 
+&cpu0 {
+	cpu-supply = <&reg_dcdc2>;
+	status = "okay";
+};
+
 &emac0 {
 	allwinner,tx-delay-ps = <700>;
 	phy-mode = "rgmii-rxid";
@@ -140,6 +189,11 @@
 	motorcomm,clk-out-frequency-hz = <125000000>;
 };
 
+&gpu {
+	mali-supply = <&reg_dcdc1>;
+	status = "okay";
+};
+
 &mmc0 {
 	/*
 	 * The schematic shows the card detect pin wired up to PF6, via an
@@ -147,62 +201,6 @@
 	 */
 	broken-cd;
 	vmmc-supply = <&reg_dldo1>;
-};
-
-&r_i2c {
-	status = "okay";
-
-	axp313: pmic@36 {
-		compatible = "x-powers,axp313a";
-		reg = <0x36>;
-		#interrupt-cells = <1>;
-		interrupt-controller;
-		interrupt-parent = <&pio>;
-		interrupts = <2 9 IRQ_TYPE_LEVEL_LOW>;	/* PC9 */
-
-		vin1-supply = <&reg_vcc5v>;
-		vin2-supply = <&reg_vcc5v>;
-		vin3-supply = <&reg_vcc5v>;
-
-		regulators {
-			/* Supplies VCC-PLL, so needs to be always on. */
-			reg_aldo1: aldo1 {
-				regulator-always-on;
-				regulator-min-microvolt = <1800000>;
-				regulator-max-microvolt = <1800000>;
-				regulator-name = "vcc1v8";
-			};
-
-			/* Supplies VCC-IO, so needs to be always on. */
-			reg_dldo1: dldo1 {
-				regulator-always-on;
-				regulator-min-microvolt = <3300000>;
-				regulator-max-microvolt = <3300000>;
-				regulator-name = "vcc3v3";
-			};
-
-			reg_dcdc1: dcdc1 {
-				regulator-always-on;
-				regulator-min-microvolt = <810000>;
-				regulator-max-microvolt = <990000>;
-				regulator-name = "vdd-gpu-sys";
-			};
-
-			reg_dcdc2: dcdc2 {
-				regulator-always-on;
-				regulator-min-microvolt = <810000>;
-				regulator-max-microvolt = <1100000>;
-				regulator-name = "vdd-cpu";
-			};
-
-			reg_dcdc3: dcdc3 {
-				regulator-always-on;
-				regulator-min-microvolt = <1100000>;
-				regulator-max-microvolt = <1100000>;
-				regulator-name = "vdd-dram";
-			};
-		};
-	};
 };
 
 &pio {
