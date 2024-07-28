@@ -17,11 +17,12 @@ Options:
   -a, --arch ARCH                     The arch of ubuntu.
   -t, --type ROOTFS_TYPE              The type of rootfs: cli, xfce, gnome, kde.
   -k, --kernelmenuconfig              If run kernel menuconfig.
+  -g, --kerneltarget                  The kernel target.
   -u, --user SYS_USER                 The normal user of rootfs.
   -p, --password SYS_PASSWORD         The password of user.
   -s, --supassword ROOT_PASSWORD      The password of root.
   -l, --local LOCAL_SOURCES           Use local kernel,u-boot,syterkit
-  -g, --githubmirror GITHUB_MIRROR    Use GitHub mirror.
+  -i, --githubmirror GITHUB_MIRROR    Use GitHub mirror.
   -o, --kernelonly                    Only build kernel package.
   -e, --ccache                        If use ccache.
   -h, --help                          Show command help.
@@ -41,6 +42,7 @@ default_param() {
     SYS_PASSWORD=avaota
     ROOT_PASSWORD=avaota
     KERNEL_MENUCONFIG=none
+    KERNEL_TARGET=none
     MIRROR=none
     GITHUB_MIRROR=none
     LOCAL=no
@@ -93,6 +95,10 @@ parseargs()
             KERNEL_MENUCONFIG=`echo $2`
             shift
             shift
+        elif [ "x$1" == "x-g" -o "x$1" == "x--kerneltarget" ]; then
+            KERNEL_TARGET=`echo $2`
+            shift
+            shift
         elif [ "x$1" == "x-l" -o "x$1" == "x--local" ]; then
             LOCAL=`echo $2`
             shift
@@ -121,7 +127,7 @@ input_box(){
         temp=`mktemp -t test.XXXXXX`
         dialog --clear --shadow --backtitle "AvaotaOS Build Framework" --title "Boards" --menu "select board" 15 60 2 \
             avaota-a1 "Avaota A1" \
-            avaota-c2 "Avaota C2" \
+            avaota-c1 "Avaota C1" \
             2> $temp
         if [ $? == 1 ];then
           exit 2
@@ -179,6 +185,25 @@ input_box(){
         clear
         rm $temp
     fi
+    
+    if [ "${KERNEL_TARGET}" == "none" ];then
+        IFS=',' read -ra PRNT_BRCHS <<< "${KERNEL_BRANCH}"
+        PRNT_BNH=$(for PRNT_BRCH in "${PRNT_BRCHS[@]}"; do
+            echo -n "${PRNT_BRCH} Kernel-Branch "
+        done)
+        
+        temp=`mktemp -t test.XXXXXX`
+        dialog --clear --shadow --backtitle "AvaotaOS Build Framework" --title "Kernel Target" --menu "select target" 15 60 2 \
+            ${PRNT_BNH} \
+            2> $temp
+        if [ $? == 1 ];then
+          exit 2
+        fi
+        KERNEL_TARGET=$(cat $temp)
+        clear
+        rm $temp
+    fi
+    source boards/${BOARD}.conf
     
     if [ "${KERNEL_ONLY}" == "none" ];then
         temp=`mktemp -t test.XXXXXX`
@@ -285,13 +310,17 @@ print_args(){
     echo "| ROOT_PASSWORD=${ROOT_PASSWORD}"
     echo "| MIRROR=${MIRROR}"
     echo "| KERNEL_MENUCONFIG=${KERNEL_MENUCONFIG}"
+    echo "| KERNEL_TARGET=${KERNEL_TARGET}"
     echo "| LOCAL=${LOCAL}"
     echo "| GITHUB_MIRROR=${GITHUB_MIRROR}"
     echo "| KERNEL_ONLY=${KERNEL_ONLY}"
     echo "| USE_CCACHE=${USE_CCACHE}"
+    echo "| LINUX_REPO=${LINUX_REPO}"
+    echo "| LINUX_BRANCH=${LINUX_BRANCH}"
+    echo "| LINUX_CONFIG=${LINUX_CONFIG}"
     echo "+-------------------------------"
     echo "You can run the following command at the next time:"
-    echo "sudo bash build_all.sh -b ${BOARD} -m ${MIRROR} -v ${VERSION} -t ${TYPE} -u ${SYS_USER} -p ${SYS_PASSWORD} -s ${ROOT_PASSWORD} -k ${KERNEL_MENUCONFIG} -l ${LOCAL} -i ${GITHUB_MIRROR} -o ${KERNEL_ONLY} -e ${USE_CCACHE}"
+    echo "sudo bash build_all.sh -b ${BOARD} -m ${MIRROR} -v ${VERSION} -t ${TYPE} -u ${SYS_USER} -p ${SYS_PASSWORD} -s ${ROOT_PASSWORD} -k ${KERNEL_MENUCONFIG} -g ${KERNEL_TARGET} -l ${LOCAL} -i ${GITHUB_MIRROR} -o ${KERNEL_ONLY} -e ${USE_CCACHE}"
     echo "--------------------------------"
 }
 
@@ -316,7 +345,7 @@ ROOTFS=${workspace}/rootfs
 source ../boards/${BOARD}.conf
 
 if [ ${LOCAL} == "no" ];then
-    sudo bash ../scripts/fetch.sh -b ${BOARD} -i ${GITHUB_MIRROR}
+    sudo bash ../scripts/fetch.sh -b ${BOARD} -i ${GITHUB_MIRROR} -g ${KERNEL_TARGET}
 fi
 
 if [[ -f ${workspace}/bootloader-${BOARD}/.done && \
@@ -330,7 +359,7 @@ if [[ -f ${workspace}/${BOARD}-kernel-pkgs/.done && \
     $(cat ${workspace}/${BOARD}-kernel-pkgs/.done) == "${LINUX_CONFIG}" ]];then
     echo "found kernel packages, skip build kernel."
 else
-    sudo bash ../scripts/mklinux.sh -b ${BOARD} -k ${KERNEL_MENUCONFIG} -e ${USE_CCACHE}
+    sudo bash ../scripts/mklinux.sh -b ${BOARD} -k ${KERNEL_MENUCONFIG} -g ${KERNEL_TARGET} -e ${USE_CCACHE}
 fi
 
 if [ ${KERNEL_ONLY} == "yes" ];then

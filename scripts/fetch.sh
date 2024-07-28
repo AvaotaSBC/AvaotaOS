@@ -24,6 +24,7 @@ help()
 default_param() {
     BOARD=avaota-a1
     GITHUB_MIRROR=none
+    KERNEL_TARGET=bsp
 }
 
 parseargs()
@@ -44,6 +45,10 @@ parseargs()
             shift
         elif [ "x$1" == "x-i" -o "x$1" == "x--githubmirror" ]; then
             GITHUB_MIRROR=`echo $2`
+            shift
+            shift
+        elif [ "x$1" == "x-g" -o "x$1" == "x--kerneltarget" ]; then
+            KERNEL_TARGET=`echo $2`
             shift
             shift
         else

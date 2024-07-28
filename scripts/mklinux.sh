@@ -13,6 +13,7 @@ The target Image & dtb will be generated in the build folder of the directory wh
 Options: 
   -b, --board BOARD                   The target board.
   -k, --kernelmenuconfig              If run kernel menuconfig.
+  -g, --kerneltarget                  The kernel target.
   -e, --ccache                        If use ccache.
   -h, --help                          Show command help.
 "
@@ -26,6 +27,7 @@ help()
 default_param() {
     BOARD=avaota-a1
     KERNEL_MENUCONFIG=no
+    KERNEL_TARGET=bsp
     USE_CCACHE=no
 }
 
@@ -49,6 +51,10 @@ parseargs()
             KERNEL_MENUCONFIG=`echo $2`
             shift
             shift
+        elif [ "x$1" == "x-g" -o "x$1" == "x--kerneltarget" ]; then
+            KERNEL_TARGET=`echo $2`
+            shift
+            shift
         elif [ "x$1" == "x-e" -o "x$1" == "x--ccache" ]; then
             USE_CCACHE=`echo $2`
             shift
@@ -68,10 +74,10 @@ patch_kernel()
     fi
     patchdev=$1
     targetdir=$2
-    if [ -d ${workspace}/../patches/${patchdev}/kernel/patches ];then
-        for pth in $(ls ${workspace}/../patches/${patchdev}/kernel/patches)
+    if [ -d ${workspace}/../patches/kernel/${patchdev}/patches ];then
+        for pth in $(ls ${workspace}/../patches/kernel/${patchdev}/patches)
     	do
-        	cp ${workspace}/../patches/${patchdev}/kernel/patches/${pth} ${targetdir}
+        	cp ${workspace}/../patches/kernel/${patchdev}/patches/${pth} ${targetdir}
         	pushd ${targetdir}
         	patch -p1 < ${pth}
         	rm ${pth}
@@ -79,8 +85,8 @@ patch_kernel()
     	done
     fi
     
-    if [ -d ${workspace}/../patches/${patchdev}/kernel/files ];then
-        cp -rv ${workspace}/../patches/${patchdev}/kernel/files/* ${targetdir}
+    if [ -d ${workspace}/../patches/kernel/${patchdev}/files ];then
+        cp -rv ${workspace}/../patches/kernel/${patchdev}/files/* ${targetdir}
     fi
     
 }

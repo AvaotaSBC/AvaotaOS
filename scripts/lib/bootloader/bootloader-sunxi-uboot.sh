@@ -13,9 +13,9 @@ patch_u-boot()
     fi
     patchdev=$1
     targetdir=$2
-    for pth in $(ls ${workspace}/../patches/${patchdev}/u-boot)
+    for pth in $(ls ${workspace}/../patches/u-boot/${patchdev})
     do
-        cp ${workspace}/../patches/${patchdev}/u-boot/${pth} ${targetdir}
+        cp ${workspace}/../patches/u-boot/${patchdev}/${pth} ${targetdir}
         pushd ${targetdir}
         patch -p1 < ${pth}
         rm ${pth}
