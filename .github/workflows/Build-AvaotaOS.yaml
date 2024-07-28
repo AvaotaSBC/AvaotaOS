@@ -12,6 +12,9 @@ on:
       config-distro-type:
         required: true
         type: string
+      config-kernel-target:
+        required: true
+        type: string
       config-release_id:
         required: true
         type: string
@@ -79,6 +82,7 @@ jobs:
             -p avaota \
             -s avaota \
             -k no \
+            -g ${{ inputs.config-kernel-target }}
             -i no \
             -o no \
             -e no

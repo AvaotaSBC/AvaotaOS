@@ -67,7 +67,7 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          sudo bash build_all.sh -b avaota-a1 -v jammy -t cli -u avaota -p avaota -s avaota -k no -i no -o yes -e no
+          sudo bash build_all.sh -b avaota-a1 -v jammy -t cli -u avaota -p avaota -s avaota -k no -g bsp -i no -o yes -e no
       - name: Upload
         if: needs.prepare_release.outputs.release_id != ''
         uses: xresloader/upload-to-github-release@v1

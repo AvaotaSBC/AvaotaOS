@@ -67,6 +67,7 @@ jobs:
             -p avaota \
             -s avaota \
             -k no \
+            -g bsp \
             -i no \
             -o yes \
             -e no

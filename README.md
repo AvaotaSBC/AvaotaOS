@@ -98,6 +98,7 @@ sudo ./build_all.sh \
     -p <USER_PASSWORD> \
     -s <ROOT_PASSWORD> \
     -k <IF_MENUCONFIG> \
+    -g <KERNEL_TARGET> \
     -i <GITHUB_MIRROR> \
     -o <KERNEL_ONLY> \
     -e <USE_CCACHE>
@@ -136,6 +137,11 @@ sudo ./build_all.sh \
 - `KERNEL_MENUCONFIG`:
   1. yes
   2. no
+  
+- `KERNEL_TARGET`:
+  1. bsp
+  2. mainline-lts
+  3. mainline-latest
 
 - `LOCAL`:
   - Don't fetch and update kernel, u-boot/syterkit from git sources.
