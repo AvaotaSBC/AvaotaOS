@@ -31,6 +31,7 @@ jobs:
       config-board: ${{ matrix.board }}
       config-release_id: ${{ needs.prepare_release.outputs.release_id }}
       config-release_ver: ${{ needs.prepare_release.outputs.release_ver }}
+      config-kernel-target: bsp
 
   build-release:
     strategy:
