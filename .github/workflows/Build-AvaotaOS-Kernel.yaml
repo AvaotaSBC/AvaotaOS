@@ -9,6 +9,9 @@ on:
       config-release_id:
         required: true
         type: string
+      config-kernel-target:
+        required: true
+        type: string
       config-release_ver:
         required: true
         type: string
@@ -67,7 +70,7 @@ jobs:
             -p avaota \
             -s avaota \
             -k no \
-            -g bsp \
+            -g ${{ inputs.config-kernel-target }} \
             -i no \
             -o yes \
             -e no
