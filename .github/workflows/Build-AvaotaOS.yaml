@@ -82,7 +82,7 @@ jobs:
             -p avaota \
             -s avaota \
             -k no \
-            -g ${{ inputs.config-kernel-target }}
+            -g ${{ inputs.config-kernel-target }} \
             -i no \
             -o no \
             -e no
