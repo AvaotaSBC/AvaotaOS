@@ -1,0 +1,32 @@
+name: AvaotaOS-build-jammy-xfce
+on:
+  workflow_dispatch:
+  
+permissions:
+  contents: write
+
+jobs:
+  prepare_release:
+    runs-on: ubuntu-latest
+    steps:
+      - id: last-release
+        uses: pozetroninc/github-action-get-latest-release@master
+        with:
+          repository: ${{ github.repository }}
+    outputs:
+      release_id: ${{ steps.last-release.outputs.id }}
+      release_ver: ${{ steps.last-release.outputs.release }}
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [prepare_release]
+    steps:
+      - name: set package version
+        run: |
+          echo ${{ needs.prepare_release.outputs.release_ver }} > VERSION
+
+      - name: get data
+        run: |
+          cat VERSION
+
+      
