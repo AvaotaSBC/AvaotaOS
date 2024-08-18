@@ -1,4 +1,4 @@
-name: AvaotaOS-build-jammy-xfce
+name: VersionTest
 on:
   workflow_dispatch:
   
