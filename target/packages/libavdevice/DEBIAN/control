@@ -4,7 +4,7 @@ Version: 7:5.1.4-0+deb12u1
 Architecture: arm64
 Maintainer: Debian Multimedia Maintainers <debian-multimedia@lists.debian.org>
 Installed-Size: 284
-Depends: libasound2 (>= 1.0.16), libavc1394-0 (>= 0.5.3), libavcodec59-avaota (>= 7:5.0), libavfilter8-avaota (>= 7:5.1), libavformat59-avaota (= 7:5.1.4-0+deb12u1), libavutil57-avaota (= 7:5.1.4-0+deb12u1), libc6 (>= 2.34), libcaca0 (>= 0.99.beta20), libcdio-cdda2 (>= 10.2+2.0.0), libcdio-paranoia2 (>= 10.2+2.0.0), libdc1394-25 (>= 2.2.6), libdrm2 (>= 2.4.101), libgl1, libiec61883-0 (>= 1.2.0), libjack-jackd2-0 (>= 1.9.10+20150825) | libjack-0.125, libopenal1 (>= 1.14), libpulse0 (>= 0.99.1), libraw1394-11 (>= 2.1.2), libsdl2-2.0-0 (>= 2.0.12), libx11-6, libxcb-shape0, libxcb-shm0, libxcb-xfixes0, libxcb1, libxext6, libxv1
+Depends: libasound2 (>= 1.0.16), libavc1394-0 (>= 0.5.3), libavcodec59-avaota (>= 7:5.0), libavfilter8-avaota (>= 7:5.1), libavformat59-avaota (= 7:5.1.4-0+deb12u1), libavutil57-avaota (= 7:5.1.4-0+deb12u1), libc6 (>= 2.34), libcaca0 (>= 0.99.beta19), libcdio-cdda2 (>= 10.2+2.0.0), libcdio-paranoia2 (>= 10.2+2.0.0), libdc1394-25 (>= 2.2.6), libdrm2 (>= 2.4.101), libgl1, libiec61883-0 (>= 1.2.0), libjack-jackd2-0 (>= 1.9.10+20150825) | libjack-0.125, libopenal1 (>= 1.14), libpulse0 (>= 0.99.1), libraw1394-11 (>= 2.1.2), libsdl2-2.0-0 (>= 2.0.12), libx11-6, libxcb-shape0, libxcb-shm0, libxcb-xfixes0, libxcb1, libxext6, libxv1
 Section: libs
 Priority: optional
 Multi-Arch: same
