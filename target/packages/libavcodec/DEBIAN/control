@@ -4,7 +4,7 @@ Version: 7:5.1.4-0+deb12u1
 Architecture: arm64
 Maintainer: Debian Multimedia Maintainers <debian-multimedia@lists.debian.org>
 Installed-Size: 12333
-Depends: libaom3 (>= 3.2.0), libavutil57-avaota (= 7:5.1.4-0+deb12u1), libc6 (>= 2.35), libcairo2 (>= 1.2.4), libcodec2-1.0 (>= 1.0.1), libdav1d6 (>= 0.9.0), libglib2.0-0 (>= 2.12.0), libgsm1 (>= 1.0.18), libjxl0.7 (>= 0.7.0), liblzma5 (>= 5.1.1alpha+20120614), libmp3lame0 (>= 3.100), libopenjp2-7 (>= 2.0.0), libopus0 (>= 1.1), librav1e0 (>= 0.5.1), librsvg2-2 (>= 2.14.4), libshine3 (>= 3.1.0), libsnappy1v5 (>= 1.1.8), libspeex1 (>= 1.2~), libsvtav1enc1 (>= 1.4.1+dfsg), libswresample4-avaota (>= 7:5.0), libtheora0 (>= 1.0), libtwolame0 (>= 0.3.10), libva2 (>= 2.9.0), libvorbis0a (>= 1.1.2), libvorbisenc2 (>= 1.1.2), libvpx7 (>= 1.11.0), libwebp7 (>= 1.2.2), libwebpmux3 (>= 1.2.2), libx264-164 (>= 2:0.164.3095+gitbaee400), libx265-199 (>= 3.5), libxvidcore4 (>= 1.2.2), libzvbi0 (>= 0.2.35), zlib1g (>= 1:1.2.0)
+Depends: libaom3 (>= 3.2.0), libavutil57-avaota (= 7:5.1.4-0+deb12u1), libc6 (>= 2.35), libcairo2 (>= 1.2.4), libcodec2-1.0 (>= 1.0.1), libdav1d5 (>= 0.9.2), libglib2.0-0 (>= 2.12.0), libgsm1 (>= 1.0.18), liblzma5 (>= 5.1.1alpha+20120614), libmp3lame0 (>= 3.100), libopenjp2-7 (>= 2.0.0), libopus0 (>= 1.1), librsvg2-2 (>= 2.14.4), libshine3 (>= 3.1.0), libsnappy1v5 (>= 1.1.8), libspeex1 (>= 1.2~), libswresample4-avaota (>= 7:5.0), libtheora0 (>= 1.0), libtwolame0 (>= 0.3.10), libva2 (>= 2.9.0), libvorbis0a (>= 1.1.2), libvorbisenc2 (>= 1.1.2), libvpx7 (>= 1.11.0), libwebp7 (>= 1.2.2), libwebpmux3 (>= 1.2.2), libx264-163 (>= 2:0.163.3060+git5db6aa6-2build1), libx265-199 (>= 3.5), libxvidcore4 (>= 1.2.2), libzvbi0 (>= 0.2.35), zlib1g (>= 1:1.2.0)
 Section: libs
 Priority: optional
 Multi-Arch: same
