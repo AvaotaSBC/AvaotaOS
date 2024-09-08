@@ -153,7 +153,7 @@ run_debootstrap(){
 }
 
 prepare_apt-list(){
-if [ "${VERSION}" == "jammy" ];then
+if [[ "${VERSION}" == "jammy" || "${VERSION}" == "focal" ]];then
     cat ../os/${VERSION}/apt-list/sources.list > ${ROOTFS}/etc/apt/sources.list
     sed -i "s|http://ports.ubuntu.com/ubuntu-ports|${MIRROR}|g" ${ROOTFS}/etc/apt/sources.list
 elif [ "${VERSION}" == "noble" ];then
@@ -246,7 +246,7 @@ if [[ "${VERSION}" == "jammy" || "${VERSION}" == "noble" ]];then
     LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} netplan set ethernets.eth1.dhcp4=true
     LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} netplan set ethernets.eth1.dhcp6=true
     LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} sudo chmod 600 /etc/netplan/*.yaml
-elif [[ "${VERSION}" == "bookworm" || "${VERSION}" == "trixie" || "${VERSION}" == "bullseye" ]];then
+elif [[ "${VERSION}" == "bookworm" || "${VERSION}" == "trixie" || "${VERSION}" == "bullseye" || "${VERSION}" == "focal" ]];then
     LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get update
     LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get install ifupdown
 fi

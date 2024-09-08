@@ -141,6 +141,7 @@ input_box(){
     if [ "${VERSION}" == "none" ];then
         temp=`mktemp -t test.XXXXXX`
         dialog --clear --shadow --backtitle "AvaotaOS Build Framework" --title "System Distro" --menu "select distro" 15 60 2 \
+            focal "Ubuntu 20.04" \
             jammy "Ubuntu 22.04" \
             noble "Ubuntu 24.04" \
             bullseye "Debian 11" \
@@ -220,7 +221,7 @@ input_box(){
     fi
     
     if [ "${MIRROR}" == "none" ];then
-        if [[ "${VERSION}" == "jammy" || "${VERSION}" == "noble" ]];then
+        if [[ "${VERSION}" == "jammy" || "${VERSION}" == "noble" || "${VERSION}" == "focal" ]];then
             MIRROR=http://ports.ubuntu.com
         elif [[ "${VERSION}" == "bookworm" || "${VERSION}" == "trixie" ]];then
             MIRROR=http://deb.debian.org/debian

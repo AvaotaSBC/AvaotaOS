@@ -55,11 +55,13 @@ sudo ./build_all.sh \
 - `BOARD`: avaota-a1
 
 - `SYSTEM_DISTRO`:
-  1. Ubuntu-22.04: jammy
-  2. Ubuntu-24.04: noble
-  3. Debian-11: bullseye
-  4. Debian-12: bookworm
-  5. Debian-13: trixie
+  1. Ubuntu-20.04: focal
+  2. Ubuntu-22.04: jammy
+  3. Ubuntu-24.04: noble
+  4. Debian-11: bullseye
+  5. Debian-12: bookworm
+  6. Debian-13: trixie
+  7. Debian-13: trixie
 
 - `MIRROR`:
   - Example: `http://ports.ubuntu.com`
