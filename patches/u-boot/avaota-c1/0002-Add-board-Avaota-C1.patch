@@ -46,7 +46,7 @@ index 00000000..b7ef9a45
 +#include <dt-bindings/leds/common.h>
 +
 +/ {
-+	model = "Avaota C2";
++	model = "Avaota C1";
 +	compatible = "avaotasbc,avaota-c1", "allwinner,sun50i-h618";
 +
 +	aliases {
