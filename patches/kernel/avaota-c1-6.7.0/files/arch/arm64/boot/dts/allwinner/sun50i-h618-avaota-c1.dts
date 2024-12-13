@@ -1,20 +1,22 @@
-// SPDX-License-Identifier: (GPL-2.0+ or MIT)
+// SPDX-License-Identifier: (GPL-2.0 OR MIT)
 /*
- * Copyright (C) 2023 BigfootACA <bigfoot@classfun.cn>.
+ * Copyright (C) AvaotaSBC <avaotasbc@avaotasbc.local>
  */
 
 /dts-v1/;
 
-#include "sun50i-h616.dtsi"
-
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/interrupt-controller/arm-gic.h>
+#include <dt-bindings/leds/common.h>
+#include "sun50i-h616.dtsi"
+#include "sun50i-h616-cpu-opp.dtsi"
 
 / {
-	model = "Yuzuki Chameleon";
-	compatible = "yuzuki,chameleon", "allwinner,sun50i-h616";
+	model = "Avaota C1";
+	compatible = "avaotasbc,avaota-c1", "allwinner,sun50i-h618";
 
 	aliases {
+		ethernet0 = &emac0;
 		serial0 = &uart0;
 	};
 
@@ -126,50 +128,55 @@
 	status = "okay";
 };
 
+&cpu0 {
+	cpu-supply = <&reg_dcdc2>;
+};
+
 &r_i2c {
 	status = "okay";
 
-	axp313a: pmic@36 {
+	axp313: pmic@36 {
 		compatible = "x-powers,axp313a";
 		reg = <0x36>;
 		interrupt-controller;
 		#interrupt-cells = <1>;
 
-		regulators{
+		regulators {
+			/* Supplies VCC-PLL, so needs to be always on. */
+			reg_aldo1: aldo1 {
+				regulator-always-on;
+				regulator-min-microvolt = <1800000>;
+				regulator-max-microvolt = <1800000>;
+				regulator-name = "vcc1v8";
+			};
+
+			/* Supplies VCC-IO, so needs to be always on. */
+			reg_dldo1: dldo1 {
+				regulator-always-on;
+				regulator-min-microvolt = <3300000>;
+				regulator-max-microvolt = <3300000>;
+				regulator-name = "vcc3v3";
+			};
+
 			reg_dcdc1: dcdc1 {
-				regulator-name = "vdd-gpu-sys";
+				regulator-always-on;
 				regulator-min-microvolt = <810000>;
 				regulator-max-microvolt = <990000>;
-				regulator-always-on;
+				regulator-name = "vdd-gpu-sys";
 			};
 
 			reg_dcdc2: dcdc2 {
-				regulator-name = "vdd-cpu";
+				regulator-always-on;
 				regulator-min-microvolt = <810000>;
 				regulator-max-microvolt = <1100000>;
-				regulator-ramp-delay = <200>;
-				regulator-always-on;
+				regulator-name = "vdd-cpu";
 			};
 
 			reg_dcdc3: dcdc3 {
-				regulator-name = "vcc-dram";
-				regulator-min-microvolt = <1350000>;
-				regulator-max-microvolt = <1500000>;
 				regulator-always-on;
-			};
-
-			reg_aldo1: aldo1 {
-				regulator-name = "vcc-1v8-pll";
-				regulator-min-microvolt = <1800000>;
-				regulator-max-microvolt = <1800000>;
-				regulator-always-on;
-			};
-
-			reg_dldo1: dldo1 {
-				regulator-name = "vcc-3v3-io";
-				regulator-min-microvolt = <3300000>;
-				regulator-max-microvolt = <3300000>;
-				regulator-always-on;
+				regulator-min-microvolt = <1100000>;
+				regulator-max-microvolt = <1100000>;
+				regulator-name = "vdd-dram";
 			};
 		};
 	};
@@ -178,7 +185,7 @@
 &pio {
 	vcc-pc-supply = <&reg_dldo1>;
 	vcc-pf-supply = <&reg_dldo1>;
-	vcc-pg-supply = <&reg_dldo1>;
+	vcc-pg-supply = <&reg_aldo1>;
 	vcc-ph-supply = <&reg_dldo1>;
 	vcc-pi-supply = <&reg_dldo1>;
 
@@ -186,6 +193,16 @@
 		pins = "PG12";
 		function = "gpio_in";
 	};
+};
+
+&axp313 {
+	vin1-supply = <&reg_vcc5v>;
+	vin2-supply = <&reg_vcc5v>;
+	vin3-supply = <&reg_vcc5v>;
+};
+
+&de {
+	status = "okay";
 };
 
 &uart0 {
@@ -202,11 +219,22 @@
 };
 
 &usbotg {
-	dr_mode = "otg";
+	/*
+	 * PHY0 pins are connected to a USB-C socket, but a role switch
+	 * is not implemented: both CC pins are pulled to GND.
+	 * The VBUS pins power the device, so a fixed peripheral mode
+	 * is the best choice.
+	 * The board can be powered via GPIOs, in this case port0 *can*
+	 * act as a host (with a cable/adapter ignoring CC), as VBUS is
+	 * then provided by the GPIOs. Any user of this setup would
+	 * need to adjust the DT accordingly: dr_mode set to "host",
+	 * enabling OHCI0 and EHCI0.
+	 */
+	dr_mode = "peripheral";
 	status = "okay";
 };
 
 &usbphy {
+	usb1_vbus-supply = <&reg_vcc5v>;
 	status = "okay";
-	usb0_id_det-gpios = <&pio 6 18 GPIO_ACTIVE_HIGH>; /* PG18 */
 };
