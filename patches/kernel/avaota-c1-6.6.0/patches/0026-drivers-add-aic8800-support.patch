@@ -1,0 +1,20 @@
+--- a/drivers/net/wireless/Kconfig
++++ b/drivers/net/wireless/Kconfig
+@@ -19,6 +19,7 @@
+ if WLAN
+ 
+ source "drivers/net/wireless/admtek/Kconfig"
++source "drivers/net/wireless/aic8800/Kconfig"
+ source "drivers/net/wireless/ath/Kconfig"
+ source "drivers/net/wireless/atmel/Kconfig"
+ source "drivers/net/wireless/broadcom/Kconfig"
+--- a/drivers/net/wireless/Makefile
++++ b/drivers/net/wireless/Makefile
+@@ -4,6 +4,7 @@
+ #
+ 
+ obj-$(CONFIG_WLAN_VENDOR_ADMTEK) += admtek/
++obj-$(CONFIG_AIC_WLAN_SUPPORT) += aic8800/
+ obj-$(CONFIG_WLAN_VENDOR_ATH) += ath/
+ obj-$(CONFIG_WLAN_VENDOR_ATMEL) += atmel/
+ obj-$(CONFIG_WLAN_VENDOR_BROADCOM) += broadcom/

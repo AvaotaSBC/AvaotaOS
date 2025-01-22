@@ -240,16 +240,7 @@ sed -i "s|#PermitRootLogin prohibit-password|PermitRootLogin yes|g" ${ROOTFS}/et
 }
 
 setup_dhcp(){
-if [[ "${VERSION}" == "jammy" || "${VERSION}" == "noble" ]];then
-    LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} netplan set ethernets.eth0.dhcp4=true
-    LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} netplan set ethernets.eth0.dhcp6=true
-    LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} netplan set ethernets.eth1.dhcp4=true
-    LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} netplan set ethernets.eth1.dhcp6=true
-    LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} sudo chmod 600 /etc/netplan/*.yaml
-elif [[ "${VERSION}" == "bookworm" || "${VERSION}" == "trixie" || "${VERSION}" == "bullseye" || "${VERSION}" == "focal" ]];then
-    LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get update
-    LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get install ifupdown
-fi
+    echo "will overwriten by board.conf"
 }
 
 setup_armhf_compate(){
@@ -338,6 +329,7 @@ trap 'UMOUNT_ALL' EXIT
 install_kernel_packages
 install_base_packages
 setup_users
+
 setup_dhcp
 
 if [ "${ARCH}" == "arm64" ];then
@@ -347,7 +339,7 @@ fi
 setup_firstrun
 clean_rootfs
 setup_hostname_fstab
-pack_target_pcakages
+#pack_target_pcakages
 
 UMOUNT_ALL
 

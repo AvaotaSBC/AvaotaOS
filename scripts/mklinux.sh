@@ -87,6 +87,7 @@ patch_kernel()
     
     if [ -d ${workspace}/../patches/kernel/${patchdev}/files ];then
         cp -rv ${workspace}/../patches/kernel/${patchdev}/files/* ${targetdir}
+        sync
     fi
     
 }
