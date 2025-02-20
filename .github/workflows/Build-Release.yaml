@@ -39,7 +39,6 @@ jobs:
         board:
           - avaota-a1
         distro:
-          - jammy
           - noble
         distro-type:
           - cli

@@ -64,7 +64,7 @@ jobs:
         run: |
           sudo -E bash build_all.sh \
             -b ${{ inputs.config-board }} \
-            -v jammy \
+            -v noble \
             -t cli \
             -u avaota \
             -p avaota \
