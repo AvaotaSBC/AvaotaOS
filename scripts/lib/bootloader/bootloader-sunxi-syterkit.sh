@@ -27,7 +27,7 @@ apply_bootloader(){
   sed -i "s|BOOTARGS|${BOOTARGS}|g" ${workspace}/bootloader-${BOARD}/extlinux/extlinux.conf
   
   cp ${workspace}/${BL_CONFIG}/build-${BOARD}/board/${BOARD}/${SYTERKIT_TYPE}/${SYTERKIT_TYPE}_bin_card.bin \
-  	${workspace}/bootloader.bin
+  	${workspace}/bootloader-syterkit.bin
   cp ${workspace}/${BL_CONFIG}/board/${BOARD}/${SYTERKIT_TYPE}/bl31/bl31.bin \
   	${workspace}/bootloader-${BOARD}/bl31.bin
   cp ${workspace}/${BL_CONFIG}/board/${BOARD}/${SYTERKIT_TYPE}/scp/scp.bin \
@@ -36,4 +36,9 @@ apply_bootloader(){
   	${workspace}/bootloader-${BOARD}/splash.bin
   	
   echo "${BOARD}" > ${workspace}/bootloader-${BOARD}/.done
+}
+
+write_bootloader(){
+    echo "write bootloader"
+    dd if=${workspace}/bootloader-syterkit.bin of=$1 bs=1024 seek=8 status=noxfer
 }

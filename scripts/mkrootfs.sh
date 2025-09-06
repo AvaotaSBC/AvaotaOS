@@ -6,20 +6,17 @@
 # https://github.com/AvaotaSBC/AvaotaOS/
 
 __usage="
-Usage: mkubuntu [OPTIONS]
-Build Ubuntu rootfs.
+Usage: mkrootfs [OPTIONS]
+Build Rootfs rootfs.
 Run in root user.
-The target rootfs will be generated in the build folder of the directory where the mkubuntu.sh script is located.
+The target rootfs will be generated in the build folder of the directory where the mkrootfs.sh script is located.
 
 Options: 
   -m, --mirror MIRROR_ADDR         The URL/path of target mirror address.
-  -r, --rootfs ROOTFS_DIR          The directory name of ubuntu rootfs.
-  -v, --version UBUNTU_VER         The version of ubuntu/debian.
+  -r, --rootfs ROOTFS_DIR          The directory name of rootfs rootfs.
+  -v, --version ROOTFS_VER         The version of ubuntu/debian.
   -b, --board BOARD                The target board.
   -t, --type ROOTFS_TYPE           The type of rootfs: cli, xfce, gnome, kde.
-  -u, --user SYS_USER              The normal user of rootfs.
-  -p, --password SYS_PASSWORD      The password of user.
-  -s, --supassword ROOT_PASSWORD   The password of root.
   -h, --help                       Show command help.
 "
 
@@ -39,9 +36,6 @@ default_param() {
     elif [[ "${VERSION}" == "bookworm" || "${VERSION}" == "trixie" ]];then
         MIRROR=http://deb.debian.org/debian
     fi
-    SYS_USER=avaota
-    SYS_PASSWORD=avaota
-    ROOT_PASSWORD=avaota
 }
 
 parseargs()
@@ -76,18 +70,6 @@ parseargs()
             TYPE=`echo $2`
             shift
             shift
-        elif [ "x$1" == "x-u" -o "x$1" == "x--user" ]; then
-            SYS_USER=`echo $2`
-            shift
-            shift
-        elif [ "x$1" == "x-p" -o "x$1" == "x--password" ]; then
-            SYS_PASSWORD=`echo $2`
-            shift
-            shift
-        elif [ "x$1" == "x-s" -o "x$1" == "x--supassword" ]; then
-            ROOT_PASSWORD=`echo $2`
-            shift
-            shift
         else
             echo `date` - ERROR, UNKNOWN params "$@"
             return 2
@@ -109,19 +91,25 @@ UMOUNT_ALL(){
     set -e
 }
 
-INSTALL_PACKAGES(){
-    for item in $(cat $1)
-    do
-        LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get install -y ${item}
-        if [ $? == 0 ]; then
-            echo "installed $item."
-        else
-            echo "can not install $item."
-        fi
-    done
-}
-
 run_debootstrap(){
+    if [[ "${VERSION}" == "jammy" || "${VERSION}" == "focal" || "${VERSION}" == "noble" ]];then
+        LIST="main multiverse restricted universe"
+        SRC_LIST="'deb ${MIRROR} ${VERSION} main multiverse restricted universe' \
+                  'deb ${MIRROR} ${VERSION}-updates main multiverse restricted universe'"
+    elif [[ "${VERSION}" == "bullseye" || "${VERSION}" == "bookworm" || "${VERSION}" == "trixie" ]];then
+        SRC_LIST="'deb ${MIRROR} ${VERSION} main contrib non-free non-free-firmware' \
+                  'deb ${MIRROR} ${VERSION}-updates main contrib non-free non-free-firmware'"
+    fi
+    
+    BASE_PKGS=$(cat ../os/${VERSION}/base-packages.list)
+    EXT_PKGS=""
+    
+    if [ "${TYPE}" != "cli" ];then
+        echo "Build desktop image."
+        EXT_PKGS=$(cat ../os/${VERSION}/${TYPE}-packages.list)
+    fi
+    
+    PACKAGES="${BASE_PKGS} ${EXT_PKGS}"
 
     echo You are running this scipt on a ${HOST_ARCH} mechine....
 
@@ -129,27 +117,21 @@ run_debootstrap(){
     mkdir ${ROOTFS}
 
     if [ "${ARCH}" == "arm64" ];then
-        sudo debootstrap --foreign --no-check-gpg --arch=arm64 ${VERSION} ${ROOTFS} ${MIRROR}
+        sudo mmdebstrap --architectures=arm64 \
+        --include="${PACKAGES}" \
+        ${VERSION} ${ROOTFS} \
+        "deb ${MIRROR} ${VERSION} ${LIST}" \
+        "deb ${MIRROR} ${VERSION}-updates ${LIST}"
     elif [ "${ARCH}" == "arm" ];then
-        sudo debootstrap --foreign --no-check-gpg --arch=armhf ${VERSION} ${ROOTFS} ${MIRROR}
+        sudo mmdebstrap --architectures=armhf \
+        --include="${PACKAGES}" \
+        ${VERSION} ${ROOTFS} \
+        "deb ${MIRROR} ${VERSION} ${LIST}" \
+        "deb ${MIRROR} ${VERSION}-updates ${LIST}"
     else
         echo "unsupported arch."
         exit 2
     fi
-
-    if [ "${HOST_ARCH}" != "${ARCH}" ];then
-        if [ ${ARCH} == "arm64" ];then
-            sudo cp /usr/bin/qemu-aarch64-static ${ROOTFS}/usr/bin
-        elif [ ${ARCH} == "arm" ];then
-            sudo cp /usr/bin/qemu-arm-static ${ROOTFS}/usr/bin
-        fi
-    else
-        echo "You are running this script on a ${ARCH} mechine, progress...."
-    fi
-
-    sudo LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} /debootstrap/debootstrap --second-stage
-    sudo LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} dpkg --configure -a
-
 }
 
 prepare_apt-list(){
@@ -157,7 +139,7 @@ if [[ "${VERSION}" == "jammy" || "${VERSION}" == "focal" ]];then
     cat ../os/${VERSION}/apt-list/sources.list > ${ROOTFS}/etc/apt/sources.list
     sed -i "s|http://ports.ubuntu.com/ubuntu-ports|${MIRROR}|g" ${ROOTFS}/etc/apt/sources.list
 elif [ "${VERSION}" == "noble" ];then
-     "# Ubuntu sources have moved to /etc/apt/sources.list.d/ubuntu.sources" > ${ROOTFS}/etc/apt/sources.list
+    echo "# Ubuntu sources have moved to /etc/apt/sources.list.d/ubuntu.sources" > ${ROOTFS}/etc/apt/sources.list
     cat ../os/${VERSION}/apt-list/ubuntu.sources > ${ROOTFS}/etc/apt/sources.list.d/ubuntu.sources
     sed -i "s|http://ports.ubuntu.com/ubuntu-ports|${MIRROR}|g" ${ROOTFS}/etc/apt/sources.list.d/ubuntu.sources
 elif [ "${VERSION}" == "bullseye" ];then
@@ -179,66 +161,6 @@ mount -t sysfs /sys ${ROOTFS}/sys
 cp -b /etc/resolv.conf ${ROOTFS}/etc/resolv.conf
 }
 
-install_base_packages(){
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get update
-
-INSTALL_PACKAGES ../os/${VERSION}/base-packages.list
-
-if [ "${TYPE}" != "cli" ];then
-    echo "Build desktop image."
-    INSTALL_PACKAGES ../os/${VERSION}/${TYPE}-packages.list
-fi
-}
-
-install_kernel_packages(){
-cp -r ${BOARD}-kernel-pkgs ${ROOTFS}/kernel-deb
-
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get update
-LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get upgrade -y
-
-cat <<EOF | LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS}
-dpkg -i /kernel-deb/linux-libc-dev*.deb
-apt-get -f install -y
-dpkg -i /kernel-deb/linux-dtb*.deb
-dpkg -i /kernel-deb/linux-image*.deb
-apt-get -f install -y
-EOF
-
-rm -rf ${ROOTFS}/kernel-deb
-}
-
-setup_users(){
-#SYS_USER=avaota
-#SYS_PASSWORD=avaota
-#ROOT_PASSWORD=avaota
-
-cat <<EOF | chroot ${ROOTFS} adduser ${SYS_USER} && addgroup ${SYS_USER} sudo
-${SYS_USER}
-${SYS_PASSWORD}
-${SYS_PASSWORD}
-0
-0
-0
-0
-y
-EOF
-
-# username：avaota
-# password：avaota
-
-cat <<EOF | chroot ${ROOTFS} passwd root
-${ROOT_PASSWORD}
-${ROOT_PASSWORD}
-EOF
-
-# username：root
-# password：avaota
-
-sed -i "s|#PermitRootLogin prohibit-password|PermitRootLogin yes|g" ${ROOTFS}/etc/ssh/sshd_config
-
-# Allow root ssh login
-}
-
 setup_dhcp(){
     echo "will overwriten by board.conf"
 }
@@ -256,6 +178,10 @@ cp ../target/services/init-resize/init-resize.service ${ROOTFS}/etc/systemd/syst
 chmod +x ${ROOTFS}/usr/local/bin/init-resize.sh
 
 chroot ${ROOTFS} sudo systemctl enable init-resize.service
+
+sed -i "s|#PermitRootLogin prohibit-password|PermitRootLogin yes|g" ${ROOTFS}/etc/ssh/sshd_config
+
+# Allow root ssh login
 }
 
 clean_rootfs(){
@@ -272,10 +198,10 @@ fi
 }
 
 setup_hostname_fstab(){
-echo '127.0.0.1	avaota-sbc' >> ${ROOTFS}/etc/hosts
+echo '127.0.0.1	${BOARD_NAME}' >> ${ROOTFS}/etc/hosts
 
 cat /dev/null > ${ROOTFS}/etc/hostname
-echo 'avaota-sbc' >> ${ROOTFS}/etc/hostname
+echo '${BOARD_NAME}' >> ${ROOTFS}/etc/hostname
 
 echo "avaota ALL=(ALL) NOPASSWD: ALL" >> ${ROOTFS}/etc/sudoers.d/010_avaota-nopassword
 
@@ -320,21 +246,19 @@ parseargs "$@" || help $?
 source ../boards/${BOARD}.conf
 source ${workspace}/../scripts/lib/packages/useroverlay-deb.sh
 
+# TODO: download rootfs from Syter's server
+
 run_debootstrap
 prepare_apt-list
 setup_mount_resolv
 
 trap 'UMOUNT_ALL' EXIT
 
-install_kernel_packages
-install_base_packages
-setup_users
-
 setup_dhcp
 
-if [ "${ARCH}" == "arm64" ];then
-setup_armhf_compate
-fi
+#if [ "${ARCH}" == "arm64" ];then
+#setup_armhf_compate
+#fi
 
 setup_firstrun
 clean_rootfs
@@ -343,5 +267,10 @@ setup_hostname_fstab
 
 UMOUNT_ALL
 
-mv ${ROOTFS} ubuntu-${VERSION}-${TYPE}
-touch ubuntu-${VERSION}-${TYPE}/THIS-IS-NOT-YOUR-ROOT
+mv ${ROOTFS} rootfs-${VERSION}-${TYPE}
+
+pushd rootfs-${VERSION}-${TYPE}
+tar -zcvf ${workspace}/rootfs-${VERSION}-${TYPE}.tar.gz *
+popd
+
+rm -rf rootfs-${VERSION}-${TYPE}

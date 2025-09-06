@@ -13,6 +13,9 @@ The target sdcard.img will be generated in the build folder of the directory whe
 Options: 
   -b,  -board BOARD                   The target board.
   -t, --type ROOTFS_TYPE              The rootfs type.
+  -u, --user SYS_USER                 The normal user of rootfs.
+  -p, --password SYS_PASSWORD         The password of user.
+  -s, --supassword ROOT_PASSWORD      The password of root.
   -h, --help                          Show command help.
 "
 
@@ -26,6 +29,9 @@ default_param() {
     TYPE=cli
     VERSION=jammy
     BOARD=avaota-a1
+    SYS_USER=avaota
+    SYS_PASSWORD=avaota
+    ROOT_PASSWORD=avaota
 }
 
 parseargs()
@@ -52,6 +58,18 @@ parseargs()
             VERSION=`echo $2`
             shift
             shift
+        elif [ "x$1" == "x-u" -o "x$1" == "x--user" ]; then
+            SYS_USER=`echo $2`
+            shift
+            shift
+        elif [ "x$1" == "x-p" -o "x$1" == "x--password" ]; then
+            SYS_PASSWORD=`echo $2`
+            shift
+            shift
+        elif [ "x$1" == "x-s" -o "x$1" == "x--supassword" ]; then
+            ROOT_PASSWORD=`echo $2`
+            shift
+            shift
         else
             echo `date` - ERROR, UNKNOWN params "$@"
             return 2
@@ -61,15 +79,14 @@ parseargs()
 
 UMOUNT_ALL(){
     set +e
+    
+    if grep -q "${workspace}/rootfs_dir/boot " /proc/mounts ; then
+        umount ${workspace}/rootfs_dir/boot
+    fi
+    
     if [ -d ${workspace}/rootfs_dir ]; then
         if grep -q "${workspace}/rootfs_dir " /proc/mounts ; then
             umount ${workspace}/rootfs_dir
-        fi
-    fi
-    
-    if [ -d ${workspace}/boot_dir ]; then
-        if grep -q "${workspace}/boot_dir " /proc/mounts ; then
-            umount ${workspace}/boot_dir
         fi
     fi
     
@@ -77,85 +94,108 @@ UMOUNT_ALL(){
         rm -rf ${workspace}/rootfs_dir
     fi
     
-    if [ -d ${workspace}/boot_dir ]; then
-        rm -rf ${workspace}/boot_dir
+    if [ "x$device" != "x" ]; then
+        kpartx -d ${device}
+        losetup -d ${device}
+        device=""
     fi
     
     set -e
 }
 
-compile_genimage()
-{
-    if [ -f ${workspace}/genimage ];then
-        echo "found genimage"
-    else
-        cd ${workspace}/../tools/genimage
-        autoreconf -is
-        ./configure
-        make
-        cp genimage ${workspace}
-    fi
-}
+setup_users(){
+#SYS_USER=avaota
+#SYS_PASSWORD=avaota
+#ROOT_PASSWORD=avaota
 
-pack_boot()
-{
-    cd ${workspace}
-    if [ -f ${workspace}/boot.vfat ];then rm ${workspace}/boot.vfat; fi
-    if [ -d ${workspace}/boot_dir ];then rm -rf ${workspace}/boot_dir; fi
-    
-    dd if=/dev/zero of=${workspace}/boot.vfat bs=1MiB count=128 status=progress && sync
-    mkfs.vfat -n boot -F 32 ${workspace}/boot.vfat
-    
-    trap 'UMOUNT_ALL' EXIT
-    
-    mkdir ${workspace}/boot_dir
-    mount ${workspace}/boot.vfat ${workspace}/boot_dir
-    
-    mv ${workspace}/ubuntu-${VERSION}-${TYPE}/boot/* ${workspace}/boot_dir
-    
-    cp -r ${workspace}/bootloader-${BOARD}/* ${workspace}/boot_dir
-    
-    UMOUNT_ALL
-}
+cat <<EOF | chroot ${workspace}/rootfs_dir adduser ${SYS_USER} && addgroup ${SYS_USER} sudo
+${SYS_USER}
+${SYS_PASSWORD}
+${SYS_PASSWORD}
+0
+0
+0
+0
+y
+EOF
 
-pack_rootfs()
-{
-    cd ${workspace}
-    if [ -f ${workspace}/rootfs.ext4 ];then rm ${workspace}/rootfs.ext4; fi
-    if [ -d ${workspace}/rootfs_dir ];then rm -rf ${workspace}/rootfs_dir; fi
-    
-    rootfs_size=`du -sh --block-size=1MiB ${workspace}/ubuntu-${VERSION}-${TYPE} | cut -f 1 | xargs`
+# username：avaota
+# password：avaota
 
-    size=$(($rootfs_size+880))
-    dd if=/dev/zero of=${workspace}/rootfs.ext4 bs=1MiB count=$size status=progress && sync
-    
-    mkfs.ext4 -L rootfs ${workspace}/rootfs.ext4
-    
-    trap 'UMOUNT_ALL' EXIT
-    
-    mkdir ${workspace}/rootfs_dir
-    mount ${workspace}/rootfs.ext4 ${workspace}/rootfs_dir
-    rsync -avHAXq ${workspace}/ubuntu-${VERSION}-${TYPE}/* ${workspace}/rootfs_dir
-    
-    rm ${workspace}/rootfs_dir/THIS-IS-NOT-YOUR-ROOT
-    rm -f ${workspace}/rootfs_dir/root/.bash_history
-    sed -i "s|avaota-sbc|${BOARD_NAME}|g" ${workspace}/rootfs_dir/etc/hosts
-    sed -i "s|avaota-sbc|${BOARD_NAME}|g" ${workspace}/rootfs_dir/etc/hostname
-    
-    cp -rfp ${workspace}/../target/firmware ${workspace}/rootfs_dir/lib/
-    
-    sync
-    sync
-    sleep 10
-    
-    UMOUNT_ALL
+cat <<EOF | chroot ${workspace}/rootfs_dir passwd root
+${ROOT_PASSWORD}
+${ROOT_PASSWORD}
+EOF
+
+# username：root
+# password：avaota
 }
 
 pack_sdcard()
 {
+
     cd ${workspace}
     if [ -f ${workspace}/sdcard.img ];then rm -rf ${workspace}/sdcard.img; fi
-    bash ${workspace}/../tools/genimage.sh -c ${workspace}/../tools/genimage-sdcard.cfg
+    if [ -d ${workspace}/rootfs_dir ];then rm -rf ${workspace}/rootfs_dir; fi
+    
+    trap 'UMOUNT_ALL' EXIT
+    
+    img_size=$(($(du -sh --block-size=1MiB ${workspace}/rootfs-${VERSION}-${TYPE} | cut -f 1 | xargs)+${BOOT_SIZE}+$(du -sh --block-size=1MiB ${workspace}/deb-data | cut -f 1 | xargs)+880))
+    
+    dd if=/dev/zero of=${workspace}/sdcard.img bs=1MiB count=${img_size} status=progress && sync
+    
+    parted ${workspace}/sdcard.img mklabel ${part_table} mkpart primary fat32 $((${OFFSET}*2048))s $(((${BOOT_SIZE}*2048)-1))s
+    parted ${workspace}/sdcard.img -s set 1 boot on
+    parted ${workspace}/sdcard.img mkpart primary ext4 $((${BOOT_SIZE}*2048))s 100%
+
+    device=$(losetup -f --show -P ${workspace}/sdcard.img)
+    kpartx -va ${device}
+    loopX=${device##*\/}
+    partprobe ${device}
+
+    bootpart=/dev/mapper/${loopX}p1
+    rootpart=/dev/mapper/${loopX}p2
+    
+    mkfs.vfat -n boot -F 32 ${bootpart}
+    mkfs.ext4 -L rootfs ${rootpart}
+    
+    mkdir ${workspace}/rootfs_dir
+    mount ${rootpart} ${workspace}/rootfs_dir
+    
+    tar -zxvf ${workspace}/rootfs-${VERSION}-${TYPE}.tar.gz -C ${workspace}/rootfs_dir
+    
+    rm -f ${workspace}/rootfs_dir/root/.bash_history
+    
+    sync
+    sleep 5
+    
+    if [ ! -d ${workspace}/rootfs_dir/boot ];then mkdir -p ${workspace}/rootfs_dir/boot; fi
+    mount ${bootpart} ${workspace}/rootfs_dir/boot
+    cp -r ${workspace}/${BOARD}-kernel-pkgs ${workspace}/rootfs_dir/kernel-deb
+    
+    cat <<EOF | LC_ALL=C LANGUAGE=C LANG=C chroot ${workspace}/rootfs_dir
+apt-get remove linux-libc-dev -y
+dpkg -i /kernel-deb/linux-libc-dev*.deb
+apt-get -f install -y
+dpkg -i /kernel-deb/linux-dtb*.deb
+dpkg -i /kernel-deb/linux-image*.deb
+apt-get -f install -y
+EOF
+    
+    rm -rf ${workspace}/rootfs_dir/kernel-deb
+    
+    cp -r ${workspace}/bootloader-${BOARD}/* ${workspace}/rootfs_dir/boot
+    
+    cp -rfp ${workspace}/../target/firmware ${workspace}/rootfs_dir/lib/
+    
+    setup_users
+    
+    sync
+    sleep 10
+    
+    UMOUNT_ALL
+    
+    write_bootloader /dev/mapper/${loopX}
 }
 
 xz_image()
@@ -179,8 +219,9 @@ parseargs "$@" || help $?
 source ../boards/${BOARD}.conf
 source ../scripts/lib/bootloader/bootloader-${BL_CONFIG}.sh
 
-compile_genimage
-pack_boot
-pack_rootfs
+OFFSET=16
+BOOT_SIZE=256
+part_table=msdos
+
 pack_sdcard
 xz_image

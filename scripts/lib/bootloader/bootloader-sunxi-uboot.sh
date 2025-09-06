@@ -43,7 +43,7 @@ apply_bootloader(){
   source ../boards/${BOARD}.conf
   if [ -d ${workspace}/bootloader-${BOARD} ];then rm -rf ${workspace}/bootloader-${BOARD}; fi
   
-  cp ${workspace}/${BL_CONFIG}/u-boot-sunxi-with-spl.bin ${workspace}/bootloader.bin
+  cp ${workspace}/${BL_CONFIG}/u-boot-sunxi-with-spl.bin ${workspace}/bootloader-u-boot.bin
   
   mkdir -p ${workspace}/bootloader-${BOARD}/extlinux
   cp ${workspace}/../target/boot/uInitrd ${workspace}/bootloader-${BOARD}
@@ -51,4 +51,9 @@ apply_bootloader(){
   sed -i "s|BOARD_NAME|${DEVICE_DTS}|g" ${workspace}/bootloader-${BOARD}/extlinux/extlinux.conf
   sed -i "s|BOOTARGS|${BOOTARGS}|g" ${workspace}/bootloader-${BOARD}/extlinux/extlinux.conf
   echo "${BOARD}" > ${workspace}/bootloader-${BOARD}/.done
+}
+
+write_bootloader(){
+    echo "write bootloader"
+    dd if=${workspace}/bootloader-u-boot.bin of=$1 bs=1024 seek=8 status=noxfer
 }

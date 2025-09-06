@@ -326,7 +326,7 @@ print_args(){
 }
 
 sudo apt-get install gcc-arm-none-eabi cmake build-essential gcc-aarch64-linux-gnu mtools qemu-user-static bc pkg-config dialog -y
-sudo apt install debootstrap ubuntu-keyring debian-keyring automake autoconf gcc make pixz libconfuse2 libconfuse-common libconfuse-dev -y
+sudo apt install mmdebstrap ubuntu-keyring debian-keyring automake autoconf gcc make pixz libconfuse2 libconfuse-common libconfuse-dev -y
 
 EXTRA_ARGS=no
 default_param
@@ -368,12 +368,12 @@ if [ ${KERNEL_ONLY} == "yes" ];then
     exit 0
 fi
 
-if [ -f ${workspace}/ubuntu-${VERSION}-${TYPE}/THIS-IS-NOT-YOUR-ROOT ];then
-    echo "found rootfs, skip build rootfs."
+if [ -f ${workspace}/rootfs-${VERSION}-${TYPE}.tar.gz ];then
+    echo "found rootfs tar, skip build rootfs."
 else
-    sudo mkdir ${ROOTFS} && sudo bash ../scripts/mkrootfs.sh -m ${MIRROR} -r ${ROOTFS} -v ${VERSION} -b ${BOARD} -t ${TYPE} -u ${SYS_USER} -p ${SYS_PASSWORD} -s ${ROOT_PASSWORD}
+    sudo mkdir ${ROOTFS} && sudo bash ../scripts/mkrootfs.sh -m ${MIRROR} -r ${ROOTFS} -v ${VERSION} -b ${BOARD} -t ${TYPE}
 fi
-sudo bash ../scripts/pack.sh -b ${BOARD} -t ${TYPE} -v ${VERSION}
+sudo bash ../scripts/pack.sh -b ${BOARD} -t ${TYPE} -v ${VERSION} -u ${SYS_USER} -p ${SYS_PASSWORD} -s ${ROOT_PASSWORD}
 
 AVA_VERSION=$(cat ../VERSION)
 if [ -f sdcard.img.xz ];then
