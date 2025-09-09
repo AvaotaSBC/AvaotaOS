@@ -97,7 +97,7 @@ clone_syterkit()
     fi
 }
 
-clone_u-boot()
+clone_atf()
 {
     if [ -d ${workspace}/${BL_CONFIG} ];then
     	pushd ${workspace}/${BL_CONFIG}
@@ -105,6 +105,30 @@ clone_u-boot()
         popd
     else
         git clone --depth=1 ${ATF_REPO} -b ${ATF_BRANCH} atf
+    fi
+}
+
+clone_rkbin()
+{
+    if [ -d ${workspace}/${BL_CONFIG} ];then
+    	pushd ${workspace}/${BL_CONFIG}
+        git pull
+        popd
+    else
+        git clone ${RKBIN_REPO} rkbin
+        pushd rkbin
+        git checkout ${RKBIN_BRANCH_HASH}
+        popd
+    fi
+}
+
+clone_u-boot()
+{
+    if [ -d ${workspace}/${BL_CONFIG} ];then
+    	pushd ${workspace}/${BL_CONFIG}
+        git pull
+        popd
+    else
         git clone --depth=1 ${UBOOT_REPO} -b ${UBOOT_BRANCH} ${BL_CONFIG}
     fi
 }
@@ -126,6 +150,10 @@ fi
 if [ ${BL_CONFIG} == "sunxi-syterkit" ];then
     clone_syterkit
 elif [ ${BL_CONFIG} == "sunxi-uboot" ];then
+    clone_atf
+    clone_u-boot
+elif [ ${BL_CONFIG} == "rockchip-uboot" ];then
+    clone_rkbin
     clone_u-boot
 fi
 

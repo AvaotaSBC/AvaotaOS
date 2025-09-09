@@ -23,7 +23,7 @@ apply_bootloader(){
   mkdir -p ${workspace}/bootloader-${BOARD}/extlinux
   cp ${workspace}/../target/boot/uInitrd ${workspace}/bootloader-${BOARD}
   cp ${workspace}/../target/boot/extlinux.conf ${workspace}/bootloader-${BOARD}/extlinux
-  sed -i "s|BOARD_NAME|${DEVICE_DTS}|g" ${workspace}/bootloader-${BOARD}/extlinux/extlinux.conf
+  sed -i "s|DTB_NAME|${DEVICE_DTS}|g" ${workspace}/bootloader-${BOARD}/extlinux/extlinux.conf
   sed -i "s|BOOTARGS|${BOOTARGS}|g" ${workspace}/bootloader-${BOARD}/extlinux/extlinux.conf
   
   cp ${workspace}/${BL_CONFIG}/build-${BOARD}/board/${BOARD}/${SYTERKIT_TYPE}/${SYTERKIT_TYPE}_bin_card.bin \

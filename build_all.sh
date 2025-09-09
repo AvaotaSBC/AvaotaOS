@@ -128,6 +128,7 @@ input_box(){
         dialog --clear --shadow --backtitle "AvaotaOS Build Framework" --title "Boards" --menu "select board" 15 60 2 \
             avaota-a1 "Avaota A1" \
             avaota-c1 "Avaota C1" \
+            dshanpi-a1 "DShanPi A1" \
             2> $temp
         if [ $? == 1 ];then
           exit 2

@@ -27,14 +27,18 @@ build_bootloader(){
   BOARD=$1
   source ../boards/${BOARD}.conf
   
-  cd atf
-  make CROSS_COMPILE=${KERNEL_GCC} PLAT=sun50i_h616 DEBUG=1 bl31
-  cd ..
-  
-  patch_u-boot ${BL_PATCHDIR} ${workspace}/${BL_CONFIG}
+  #patch_u-boot ${BL_PATCHDIR} ${workspace}/${BL_CONFIG}
   cd ${BL_CONFIG}
-  make CROSS_COMPILE=${KERNEL_GCC} BL31=${workspace}/atf/build/sun50i_h616/debug/bl31.bin ${BL_CONF}
-  make CROSS_COMPILE=${KERNEL_GCC} BL31=${workspace}/atf/build/sun50i_h616/debug/bl31.bin -j$(nproc)
+  cp ${workspace}/rkbin/${BL31_PATH} bl31.elf
+  cp ${workspace}/rkbin/${TEE_PATH} tee.bin
+  if [ ${USE_PREBUILT_UBOOT} == 1 ];then
+      cp ${workspace}/../target/boot/${BOARD}-u-boot-bin/* .
+  else
+      make CROSS_COMPILE=${KERNEL_GCC} ARCH=arm ${BL_CONF}
+      make ARCH=arm CROSS_COMPILE=${KERNEL_GCC} spl/u-boot-spl.bin u-boot.dtb u-boot.itb -j$(nproc)
+      
+      tools/mkimage -n rk3576 -T rksd -d ${workspace}/rkbin/${DDRBIN_PATH}:spl/u-boot-spl.bin idbloader.img
+  fi
   cd ..
 }
 
@@ -43,7 +47,8 @@ apply_bootloader(){
   source ../boards/${BOARD}.conf
   if [ -d ${workspace}/bootloader-${BOARD} ];then rm -rf ${workspace}/bootloader-${BOARD}; fi
   
-  cp ${workspace}/${BL_CONFIG}/u-boot-sunxi-with-spl.bin ${workspace}/bootloader-u-boot.bin
+  cp ${workspace}/${BL_CONFIG}/idbloader.img ${workspace}
+  cp ${workspace}/${BL_CONFIG}/u-boot.itb ${workspace}
   
   mkdir -p ${workspace}/bootloader-${BOARD}/extlinux
   cp ${workspace}/../target/boot/uInitrd ${workspace}/bootloader-${BOARD}
@@ -55,5 +60,6 @@ apply_bootloader(){
 
 write_bootloader(){
     echo "write bootloader"
-    dd if=${workspace}/bootloader-u-boot.bin of=$1 bs=1024 seek=8 status=noxfer
+    dd if=${workspace}/idbloader.img of=$1 seek=64 conv=notrunc status=none
+    dd if=${workspace}/u-boot.itb of=$1 seek=16384 conv=notrunc status=none
 }
