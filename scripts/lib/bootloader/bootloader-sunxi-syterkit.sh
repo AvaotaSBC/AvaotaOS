@@ -40,5 +40,5 @@ apply_bootloader(){
 
 write_bootloader(){
     echo "write bootloader"
-    dd if=${workspace}/bootloader-syterkit.bin of=$1 bs=1024 seek=8 status=noxfer
+    dd if="${workspace}/bootloader-syterkit.bin" of="$1" bs=1024 seek=8 conv=notrunc status=noxfer
 }

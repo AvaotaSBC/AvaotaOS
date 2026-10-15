@@ -5,6 +5,8 @@
 # This file is a part of the Avaota Build Framework
 # https://github.com/AvaotaSBC/AvaotaOS/
 
+set -e
+
 __usage="
 Usage: build_all [OPTIONS]
 Build bootable image.
@@ -223,7 +225,7 @@ input_box(){
     
     if [ "${MIRROR}" == "none" ];then
         if [[ "${VERSION}" == "jammy" || "${VERSION}" == "noble" || "${VERSION}" == "focal" ]];then
-            MIRROR=http://ports.ubuntu.com
+            MIRROR=https://ports.ubuntu.com/ubuntu-ports
         elif [[ "${VERSION}" == "bookworm" || "${VERSION}" == "trixie" ]];then
             MIRROR=http://deb.debian.org/debian
         fi
@@ -298,7 +300,7 @@ input_box(){
         rm $temp
         fi
     fi
-    clear
+    if [ -t 1 ]; then clear; fi
 }
 
 print_args(){

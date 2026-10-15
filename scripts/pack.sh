@@ -5,6 +5,8 @@
 # This file is a part of the Avaota Build Framework
 # https://github.com/AvaotaSBC/AvaotaOS/
 
+set -e
+
 __usage="
 Usage: pack [OPTIONS]
 Pack bootable image.
@@ -108,27 +110,21 @@ setup_users(){
 #SYS_PASSWORD=avaota
 #ROOT_PASSWORD=avaota
 
-cat <<EOF | chroot ${workspace}/rootfs_dir adduser ${SYS_USER} && addgroup ${SYS_USER} sudo
-${SYS_USER}
-${SYS_PASSWORD}
-${SYS_PASSWORD}
-0
-0
-0
-0
-y
-EOF
+chroot "${workspace}/rootfs_dir" adduser --disabled-password --gecos "" "${SYS_USER}"
+chroot "${workspace}/rootfs_dir" adduser "${SYS_USER}" sudo
+printf '%s:%s\n' "${SYS_USER}" "${SYS_PASSWORD}" | chroot "${workspace}/rootfs_dir" chpasswd
 
 # username：avaota
 # password：avaota
 
-cat <<EOF | chroot ${workspace}/rootfs_dir passwd root
-${ROOT_PASSWORD}
-${ROOT_PASSWORD}
-EOF
+printf 'root:%s\n' "${ROOT_PASSWORD}" | chroot "${workspace}/rootfs_dir" chpasswd
 
 # username：root
 # password：avaota
+}
+
+setup_display(){
+    :
 }
 
 pack_sdcard()
@@ -140,13 +136,15 @@ pack_sdcard()
     
     trap 'UMOUNT_ALL' EXIT
     
-    img_size=$(($(du -sh --block-size=1MiB ${workspace}/rootfs-${VERSION}-${TYPE}.tar.gz | cut -f 1 | xargs)*3+${BOOT_SIZE}+$(du -sh --block-size=1MiB ${workspace}/deb-data | cut -f 1 | xargs)+880))
+    rootfs_size=$(tar --numeric-owner -tvzf "${workspace}/rootfs-${VERSION}-${TYPE}.tar.gz" | awk '{size += $3} END {printf "%.0f", size / 1048576 + 1}')
+    kernel_size=$(du -sm "${workspace}/deb-data" | cut -f 1)
+    img_size=$((rootfs_size + rootfs_size / 5 + kernel_size + BOOT_SIZE + 1024))
     
-    dd if=/dev/zero of=${workspace}/sdcard.img bs=1MiB count=${img_size} status=progress && sync
+    truncate -s "${img_size}MiB" "${workspace}/sdcard.img"
     
-    parted ${workspace}/sdcard.img mklabel ${part_table} mkpart primary fat32 $((${OFFSET}*2048))s $(((${BOOT_SIZE}*2048)-1))s
+    parted -s ${workspace}/sdcard.img mklabel ${part_table} mkpart primary fat32 $((${OFFSET}*2048))s $(((${BOOT_SIZE}*2048)-1))s
     parted ${workspace}/sdcard.img -s set 1 boot on
-    parted ${workspace}/sdcard.img mkpart primary ext4 $((${BOOT_SIZE}*2048))s 100%
+    parted -s ${workspace}/sdcard.img mkpart primary ext4 $((${BOOT_SIZE}*2048))s 100%
 
     device=$(losetup -f --show -P ${workspace}/sdcard.img)
     kpartx -va ${device}
@@ -173,7 +171,7 @@ pack_sdcard()
     mount ${bootpart} ${workspace}/rootfs_dir/boot
     cp -r ${workspace}/${BOARD}-kernel-pkgs ${workspace}/rootfs_dir/kernel-deb
     
-    cat <<EOF | LC_ALL=C LANGUAGE=C LANG=C chroot ${workspace}/rootfs_dir
+    cat <<EOF | LC_ALL=C LANGUAGE=C LANG=C chroot ${workspace}/rootfs_dir /bin/bash -e
 apt-get remove linux-libc-dev -y
 dpkg -i /kernel-deb/linux-libc-dev*.deb
 apt-get -f install -y
@@ -189,20 +187,27 @@ EOF
     cp -rfp ${workspace}/../target/firmware ${workspace}/rootfs_dir/lib/
     
     setup_users
+
+    # Apply board display settings even when reusing a cached rootfs archive.
+    ROOTFS="${workspace}/rootfs_dir" setup_display
+
+    if [ -f "${workspace}/rootfs_dir/usr/lib/systemd/system/systemd-resolved.service" ]; then
+        ln -sfn /run/systemd/resolve/stub-resolv.conf "${workspace}/rootfs_dir/etc/resolv.conf"
+    fi
     
     sync
     sleep 10
     
     UMOUNT_ALL
     
-    write_bootloader /dev/mapper/${loopX}
+    write_bootloader "${workspace}/sdcard.img"
 }
 
 xz_image()
 {
     cd ${workspace}
     if [ -f sdcard.img ];then
-        pixz sdcard.img
+        pixz < sdcard.img > sdcard.img.xz
         echo "xz success."
     else
         echo "sdcard.img not found, xz sdcard image failed!"
