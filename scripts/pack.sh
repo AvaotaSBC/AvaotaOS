@@ -127,6 +127,10 @@ setup_display(){
     :
 }
 
+setup_wifi(){
+    :
+}
+
 pack_sdcard()
 {
 
@@ -188,8 +192,9 @@ EOF
     
     setup_users
 
-    # Apply board display settings even when reusing a cached rootfs archive.
+    # Apply board settings even when reusing a cached rootfs archive.
     ROOTFS="${workspace}/rootfs_dir" setup_display
+    ROOTFS="${workspace}/rootfs_dir" setup_wifi
 
     if [ -f "${workspace}/rootfs_dir/usr/lib/systemd/system/systemd-resolved.service" ]; then
         ln -sfn /run/systemd/resolve/stub-resolv.conf "${workspace}/rootfs_dir/etc/resolv.conf"

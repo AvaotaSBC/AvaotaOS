@@ -171,6 +171,10 @@ setup_display(){
     :
 }
 
+setup_wifi(){
+    :
+}
+
 setup_armhf_compate(){
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} dpkg --add-architecture armhf
 LC_ALL=C LANGUAGE=C LANG=C chroot ${ROOTFS} apt-get update
@@ -276,6 +280,7 @@ trap 'UMOUNT_ALL' EXIT
 
 setup_dhcp
 setup_display
+setup_wifi
 
 #if [ "${ARCH}" == "arm64" ];then
 #setup_armhf_compate
