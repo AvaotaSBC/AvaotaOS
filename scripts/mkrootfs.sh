@@ -5,6 +5,8 @@
 # This file is a part of the Avaota Build Framework
 # https://github.com/AvaotaSBC/AvaotaOS/
 
+set -e
+
 __usage="
 Usage: mkrootfs [OPTIONS]
 Build Rootfs rootfs.
@@ -32,7 +34,7 @@ default_param() {
     VERSION=jammy
     TYPE=cli
     if [[ "${VERSION}" == "jammy" || "${VERSION}" == "noble" ]];then
-        MIRROR=http://ports.ubuntu.com
+        MIRROR=https://ports.ubuntu.com/ubuntu-ports
     elif [[ "${VERSION}" == "bookworm" || "${VERSION}" == "trixie" ]];then
         MIRROR=http://deb.debian.org/debian
     fi
@@ -158,11 +160,19 @@ mount --bind /dev ${ROOTFS}/dev
 mount -t proc /proc ${ROOTFS}/proc
 mount -t sysfs /sys ${ROOTFS}/sys
 
-cp -b /etc/resolv.conf ${ROOTFS}/etc/resolv.conf
+cp --remove-destination /etc/resolv.conf "${ROOTFS}/etc/resolv.conf"
 }
 
 setup_dhcp(){
     echo "will overwriten by board.conf"
+}
+
+setup_display(){
+    :
+}
+
+setup_wifi(){
+    :
 }
 
 setup_armhf_compate(){
@@ -179,6 +189,17 @@ chmod +x ${ROOTFS}/usr/local/bin/init-resize.sh
 
 chroot ${ROOTFS} sudo systemctl enable init-resize.service
 
+install -m 755 ../scripts/diagnose-display.sh "${ROOTFS}/usr/local/bin/avaota-display-diagnostics"
+mkdir -p "${ROOTFS}/var/log/journal"
+chmod 2755 "${ROOTFS}/var/log/journal"
+chroot "${ROOTFS}" chown root:systemd-journal /var/log/journal
+cat > "${ROOTFS}/etc/avaota-release" <<EOF
+AVAOTA_VERSION=$(cat ../VERSION)
+BOARD=${BOARD}
+DISTRIBUTION=${VERSION}
+DESKTOP=${TYPE}
+EOF
+
 sed -i "s|#PermitRootLogin prohibit-password|PermitRootLogin yes|g" ${ROOTFS}/etc/ssh/sshd_config
 
 # Allow root ssh login
@@ -186,11 +207,14 @@ sed -i "s|#PermitRootLogin prohibit-password|PermitRootLogin yes|g" ${ROOTFS}/et
 
 clean_rootfs(){
 chroot ${ROOTFS} apt clean
+if [ -f "${ROOTFS}/usr/lib/systemd/system/systemd-resolved.service" ]; then
+    ln -sfn /run/systemd/resolve/stub-resolv.conf "${ROOTFS}/etc/resolv.conf"
+fi
 if [ "$HOST_ARCH" != "$ARCH" ];then
     if [ ${ARCH} == "arm64" ];then
-        sudo rm ${ROOTFS}/usr/bin/qemu-aarch64-static
+        sudo rm -f ${ROOTFS}/usr/bin/qemu-aarch64-static
     elif [ ${ARCH} == "arm" ];then
-        sudo rm ${ROOTFS}/usr/bin/qemu-arm-static
+        sudo rm -f ${ROOTFS}/usr/bin/qemu-arm-static
     fi
 else
 echo "You are running this script on a ${ARCH} mechine, progress...."
@@ -198,10 +222,10 @@ fi
 }
 
 setup_hostname_fstab(){
-echo '127.0.0.1	${BOARD_NAME}' >> ${ROOTFS}/etc/hosts
+printf '127.0.1.1\t%s\n' "${BOARD_NAME}" >> ${ROOTFS}/etc/hosts
 
 cat /dev/null > ${ROOTFS}/etc/hostname
-echo '${BOARD_NAME}' >> ${ROOTFS}/etc/hostname
+echo "${BOARD_NAME}" >> ${ROOTFS}/etc/hostname
 
 echo "avaota ALL=(ALL) NOPASSWD: ALL" >> ${ROOTFS}/etc/sudoers.d/010_avaota-nopassword
 
@@ -255,6 +279,8 @@ setup_mount_resolv
 trap 'UMOUNT_ALL' EXIT
 
 setup_dhcp
+setup_display
+setup_wifi
 
 #if [ "${ARCH}" == "arm64" ];then
 #setup_armhf_compate

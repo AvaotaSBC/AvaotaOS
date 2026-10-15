@@ -5,6 +5,8 @@
 # This file is a part of the Avaota Build Framework
 # https://github.com/AvaotaSBC/AvaotaOS/
 
+set -e
+
 __usage="
 Usage: fetch [OPTIONS]
 Fetch build sources.
@@ -64,23 +66,21 @@ clone_linux()
         pushd ${workspace}/linux
         git remote -v update
         remote_url=$(git config --get remote.origin.url)
-        current_branch=$(git symbolic-ref --short HEAD)
+        current_branch=$(git symbolic-ref --short HEAD 2>/dev/null || true)
         if [[ "${remote_url}" == "${LINUX_REPO}" && "${current_branch}" == "${LINUX_BRANCH}" ]];then
             git pull
         else
             rm -rf ${workspace}/linux
             cd ${workspace}
-            git clone --depth=1 ${LINUX_REPO} -b ${LINUX_BRANCH} linux
-            if [ $? == 1 ];then
-              git clone --depth=1 ${LINUX_GITEE_REPO} -b ${LINUX_BRANCH} linux
+            if ! git clone --depth=1 "${LINUX_REPO}" -b "${LINUX_BRANCH}" linux; then
+              git clone --depth=1 "${LINUX_GITEE_REPO}" -b "${LINUX_BRANCH}" linux
             fi
         fi
         popd
     else
         cd ${workspace}
-        git clone --depth=1 ${LINUX_REPO} -b ${LINUX_BRANCH} linux
-        if [ $? == 1 ];then
-          git clone --depth=1 ${LINUX_GITEE_REPO} -b ${LINUX_BRANCH} linux
+        if ! git clone --depth=1 "${LINUX_REPO}" -b "${LINUX_BRANCH}" linux; then
+          git clone --depth=1 "${LINUX_GITEE_REPO}" -b "${LINUX_BRANCH}" linux
         fi
     fi
 }
@@ -90,10 +90,14 @@ clone_syterkit()
     if [ -d ${workspace}/${BL_CONFIG} ];then
     	pushd ${workspace}/${BL_CONFIG}
         rm -rf build-${BOARD}
-        git pull
+        if [ -z "${SYTERKIT_COMMIT:-}" ]; then git pull; fi
         popd
     else
         git clone --depth=1 ${SYTERKIT_REPO} -b ${SYTERKIT_BRANCH} ${BL_CONFIG}
+    fi
+    if [ -n "${SYTERKIT_COMMIT:-}" ]; then
+        git -C "${workspace}/${BL_CONFIG}" fetch --depth=1 origin "${SYTERKIT_COMMIT}"
+        git -C "${workspace}/${BL_CONFIG}" checkout --detach FETCH_HEAD
     fi
 }
 

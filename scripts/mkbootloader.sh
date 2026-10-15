@@ -5,6 +5,8 @@
 # This file is a part of the Avaota Build Framework
 # https://github.com/AvaotaSBC/AvaotaOS/
 
+set -e
+
 __usage="
 Usage: mkbootloader [OPTIONS]
 Build bootloader bin.
